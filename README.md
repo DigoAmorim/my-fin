@@ -13,7 +13,8 @@ Estrutura inicial de uma aplicação financeira com React, TypeScript, Node.js e
 1. Copie `.env.example` para `.env`.
 2. Instale as dependências na raiz: `npm install`.
 3. Inicie o PostgreSQL: `npm run db:up`.
-4. Inicie frontend e API: `npm run dev`.
+4. Aplique as migrações: `npm run db:migrate`.
+5. Inicie frontend e API: `npm run dev`.
 
 - Frontend: http://localhost:5173
 - API: http://localhost:3000/api/health
@@ -25,6 +26,7 @@ Use `npm run db:down` para parar o banco. Os dados locais ficam em um volume Doc
 
 - `frontend`: aplicação React + TypeScript, criada com Vite.
 - `backend`: API HTTP Node.js + TypeScript.
+- `backend/database`: runner TypeScript e migrações PostgreSQL em arquivos SQL numerados.
 - `docker-compose.yml`: serviço PostgreSQL para desenvolvimento local.
 
-O endpoint de prontidão valida a conexão com o banco. Ainda não há autenticação, regras financeiras, migrações ou configuração de produção; não use os dados de exemplo fora do desenvolvimento local.
+O endpoint de prontidão valida a conexão com o banco. Ainda não há autenticação, regras financeiras ou configuração de produção; não use os dados de exemplo fora do desenvolvimento local.

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool } from '../db/pool';
+import { pool } from '../../database/pool';
 
 export const healthRouter = Router();
 

@@ -5,9 +5,11 @@
   "type": "commonjs",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "prebuild": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js",
-    "lint": "oxlint src"
+    "start": "node dist/src/server.js",
+    "db:migrate": "tsx database/migrate.ts",
+    "lint": "oxlint src database"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -20,6 +22,7 @@
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.15.5",
+    "node-pg-migrate": "^9.0.0",
     "oxlint": "^1.81.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
