@@ -1,0 +1,21 @@
+{
+  "name": "my-fin",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n frontend,backend \"npm run dev --workspace @my-fin/frontend\" \"npm run dev --workspace @my-fin/backend\"",
+    "dev:frontend": "npm run dev --workspace @my-fin/frontend",
+    "dev:backend": "npm run dev --workspace @my-fin/backend",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
