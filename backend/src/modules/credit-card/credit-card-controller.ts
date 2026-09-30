@@ -6,7 +6,7 @@ import {
   getCreditCard as get,
   listCreditCards as list,
   updateCreditCard as update,
-} from './service';
+} from './credit-card-service';
 
 // A camada HTTP traduz chamadas em operacoes do service e prepara as respostas.
 type AsyncController = (request: Request, response: Response) => Promise<void>;
@@ -33,7 +33,7 @@ export const listCreditCards = withErrorHandling(async (_request, response) => {
 });
 
 export const getCreditCard = withErrorHandling(async (request, response) => {
-  response.json(await get(request.params.code));
+  response.json(await get(request.params.id));
 });
 
 export const createCreditCard = withErrorHandling(async (request, response) => {
@@ -41,10 +41,10 @@ export const createCreditCard = withErrorHandling(async (request, response) => {
 });
 
 export const updateCreditCard = withErrorHandling(async (request, response) => {
-  response.json(await update(request.params.code, request.body));
+  response.json(await update(request.params.id, request.body));
 });
 
 export const deleteCreditCard = withErrorHandling(async (request, response) => {
-  await remove(request.params.code);
+  await remove(request.params.id);
   response.status(204).end();
 });

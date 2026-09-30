@@ -1,0 +1,57 @@
+{
+  "app": {
+    "name": "MyFin",
+    "tagline": "Personal financial management"
+  },
+  "nav": {
+    "overview": "Overview",
+    "creditCards": "Cards",
+    "groupAccounts": "Accounts",
+    "groupAnalysis": "Analysis",
+    "groupSettings": "Settings",
+    "budgets": "Budgets",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "toolbar": {
+    "language": "Language",
+    "toggleMenu": "Toggle menu"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "new": "New",
+    "search": "Search",
+    "loading": "Loading...",
+    "summary": "Summary",
+    "empty": "No records found.",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "creditCards": {
+    "title": "Credit cards",
+    "listTitle": "Registered cards",
+    "subtitle": "Register and track your cards",
+    "new": "New card",
+    "edit": "Edit card",
+    "form": {
+      "name": "Name",
+      "dueDay": "Due day"
+    },
+    "table": {
+      "name": "Name",
+      "dueDay": "Due day",
+      "actions": "Actions"
+    },
+    "empty": "There are no registered cards yet.",
+    "count": "registered cards",
+    "deleteConfirm": "Are you sure you want to delete this card?",
+    "errorRequired": "Please fill in all required fields.",
+    "errorInvalidDueDay": "The due day must be between 1 and 31.",
+    "successCreate": "Card created successfully.",
+    "successUpdate": "Card updated successfully.",
+    "successDelete": "Card removed successfully."
+  }
+}

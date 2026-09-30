@@ -1,0 +1,57 @@
+{
+  "app": {
+    "name": "MyFin",
+    "tagline": "Gestão financeira pessoal"
+  },
+  "nav": {
+    "overview": "Visão geral",
+    "creditCards": "Cartões",
+    "groupAccounts": "Contas",
+    "groupAnalysis": "Análise",
+    "groupSettings": "Configuração",
+    "budgets": "Orçamentos",
+    "reports": "Relatórios",
+    "settings": "Configurações"
+  },
+  "toolbar": {
+    "language": "Idioma",
+    "toggleMenu": "Abrir menu"
+  },
+  "common": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "new": "Novo",
+    "search": "Buscar",
+    "loading": "Carregando...",
+    "summary": "Resumo",
+    "empty": "Nenhum registro encontrado.",
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "creditCards": {
+    "title": "Cartões de crédito",
+    "listTitle": "Cartões cadastrados",
+    "subtitle": "Cadastre e acompanhe os seus cartões",
+    "new": "Novo cartão",
+    "edit": "Editar cartão",
+    "form": {
+      "name": "Nome",
+      "dueDay": "Dia de vencimento"
+    },
+    "table": {
+      "name": "Nome",
+      "dueDay": "Vencimento",
+      "actions": "Ações"
+    },
+    "empty": "Ainda não há cartões cadastrados.",
+    "count": "cartões cadastrados",
+    "deleteConfirm": "Deseja realmente excluir este cartão?",
+    "errorRequired": "Preencha todos os campos obrigatórios.",
+    "errorInvalidDueDay": "O dia de vencimento deve estar entre 1 e 31.",
+    "successCreate": "Cartão criado com sucesso.",
+    "successUpdate": "Cartão atualizado com sucesso.",
+    "successDelete": "Cartão removido com sucesso."
+  }
+}

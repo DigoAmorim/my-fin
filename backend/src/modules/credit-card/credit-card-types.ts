@@ -1,6 +1,6 @@
 // Contratos da entidade e dos campos aceitos ao criar ou alterar um cartao.
 export interface CreditCard {
-  code: string;
+  id: number;
   name: string;
   dueDay: number;
 }
@@ -10,6 +10,4 @@ export interface CreditCardFields {
   dueDay: number;
 }
 
-export interface CreateCreditCardInput extends CreditCardFields {
-  code: string;
-}
+export type CreateCreditCardInput = CreditCardFields;

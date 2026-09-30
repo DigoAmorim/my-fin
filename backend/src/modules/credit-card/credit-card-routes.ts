@@ -5,13 +5,13 @@ import {
   getCreditCard,
   listCreditCards,
   updateCreditCard,
-} from './controller';
+} from './credit-card-controller';
 
 // Mapeia cada endpoint HTTP para a operacao correspondente no controller.
 export const creditCardRouter = Router();
 
 creditCardRouter.get('/', listCreditCards);
-creditCardRouter.get('/:code', getCreditCard);
+creditCardRouter.get('/:id', getCreditCard);
 creditCardRouter.post('/', createCreditCard);
-creditCardRouter.put('/:code', updateCreditCard);
-creditCardRouter.delete('/:code', deleteCreditCard);
+creditCardRouter.put('/:id', updateCreditCard);
+creditCardRouter.delete('/:id', deleteCreditCard);

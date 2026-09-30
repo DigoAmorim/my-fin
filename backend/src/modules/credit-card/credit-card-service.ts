@@ -1,6 +1,6 @@
 // Este modulo valida entradas, coordena as operacoes e traduz erros do banco.
-import * as repository from './repository';
-import type { CreditCard, CreditCardFields } from './types';
+import * as repository from './credit-card-repository';
+import type { CreditCard, CreditCardFields } from './credit-card-types';
 
 export class CreditCardServiceError extends Error {
   constructor(
@@ -20,12 +20,14 @@ function asRecord(input: unknown): Record<string, unknown> {
   return input as Record<string, unknown>;
 }
 
-function parseCode(input: unknown): string {
-  if (typeof input !== 'string' || input.trim().length === 0) {
-    throw new CreditCardServiceError(400, 'code must be a non-empty string.');
+function parseId(input: unknown): number {
+  const id = typeof input === 'string' && /^\d+$/.test(input) ? Number(input) : input;
+
+  if (typeof id !== 'number' || !Number.isSafeInteger(id) || id < 1) {
+    throw new CreditCardServiceError(400, 'id must be a positive integer.');
   }
 
-  return input.trim();
+  return id;
 }
 
 // Valida e normaliza os campos mutaveis antes de envia-los ao repository.
@@ -60,9 +62,9 @@ export async function listCreditCards(): Promise<CreditCard[]> {
   return repository.findAll();
 }
 
-export async function getCreditCard(codeInput: unknown): Promise<CreditCard> {
-  const code = parseCode(codeInput);
-  const creditCard = await repository.findByCode(code);
+export async function getCreditCard(idInput: unknown): Promise<CreditCard> {
+  const id = parseId(idInput);
+  const creditCard = await repository.findById(id);
 
   if (!creditCard) {
     throw new CreditCardServiceError(404, 'Credit card not found.');
@@ -73,33 +75,23 @@ export async function getCreditCard(codeInput: unknown): Promise<CreditCard> {
 
 export async function createCreditCard(input: unknown): Promise<CreditCard> {
   const body = asRecord(input);
-  const creditCard: CreditCard = {
-    code: parseCode(body.code),
-    ...parseFields(body),
-  };
-
-  try {
-    return await repository.create(creditCard);
-  } catch (error) {
-    // O SQLSTATE 23505 indica que ja existe um cartao com esse codigo.
-    if (databaseErrorCode(error) === '23505') {
-      throw new CreditCardServiceError(409, 'A credit card with this code already exists.');
-    }
-
-    throw error;
+  if (body.id !== undefined) {
+    throw new CreditCardServiceError(400, 'id is generated and cannot be set.');
   }
+
+  return repository.create(parseFields(body));
 }
 
-export async function updateCreditCard(codeInput: unknown, input: unknown): Promise<CreditCard> {
-  const code = parseCode(codeInput);
+export async function updateCreditCard(idInput: unknown, input: unknown): Promise<CreditCard> {
+  const id = parseId(idInput);
   const body = asRecord(input);
 
-  if (body.code !== undefined && body.code !== code) {
-    throw new CreditCardServiceError(400, 'code cannot be changed.');
+  if (body.id !== undefined && body.id !== id) {
+    throw new CreditCardServiceError(400, 'id cannot be changed.');
   }
 
   const fields = parseFields(body);
-  const creditCard = await repository.update(code, fields);
+  const creditCard = await repository.update(id, fields);
 
   if (!creditCard) {
     throw new CreditCardServiceError(404, 'Credit card not found.');
@@ -108,11 +100,11 @@ export async function updateCreditCard(codeInput: unknown, input: unknown): Prom
   return creditCard;
 }
 
-export async function deleteCreditCard(codeInput: unknown): Promise<void> {
-  const code = parseCode(codeInput);
+export async function deleteCreditCard(idInput: unknown): Promise<void> {
+  const id = parseId(idInput);
 
   try {
-    const deleted = await repository.remove(code);
+    const deleted = await repository.remove(id);
 
     if (!deleted) {
       throw new CreditCardServiceError(404, 'Credit card not found.');

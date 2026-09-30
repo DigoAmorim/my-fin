@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --breakpoint-md: 53.75rem;
+  --font-sans: 'Geist', 'Segoe UI', sans-serif;
+  --color-background: #f7f8fa;
+  --color-foreground: #0f172a;
+  --color-card: #fff;
+  --color-border: #e8ecf1;
+  --color-primary: #6366f1;
+  --color-primary-foreground: #fff;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-accent: #eef2ff;
+  --color-accent-foreground: #4f46e5;
+  --color-destructive: #c83d52;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+:root {
+  --radius: 0.625rem;
+  color-scheme: light;
+  font-family: 'Geist', 'Segoe UI', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  body {
+    @apply m-0 min-h-screen min-w-[320px] bg-background text-foreground;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+}
