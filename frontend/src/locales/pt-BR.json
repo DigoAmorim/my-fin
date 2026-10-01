@@ -6,12 +6,14 @@
   "nav": {
     "overview": "Visão geral",
     "creditCards": "Cartões",
+    "transactions": "Transações",
     "groupAccounts": "Contas",
     "groupAnalysis": "Análise",
     "groupSettings": "Configuração",
     "budgets": "Orçamentos",
     "reports": "Relatórios",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "menu": "Menu principal"
   },
   "toolbar": {
     "language": "Idioma",
@@ -28,7 +30,8 @@
     "summary": "Resumo",
     "empty": "Nenhum registro encontrado.",
     "status": "Status",
-    "actions": "Ações"
+    "actions": "Ações",
+    "error": "Ocorreu um erro. Tente novamente."
   },
   "creditCards": {
     "title": "Cartões de crédito",
@@ -47,11 +50,72 @@
     },
     "empty": "Ainda não há cartões cadastrados.",
     "count": "cartões cadastrados",
-    "deleteConfirm": "Deseja realmente excluir este cartão?",
+    "deleteConfirm": "Deseja realmente excluir {{name}}?",
     "errorRequired": "Preencha todos os campos obrigatórios.",
     "errorInvalidDueDay": "O dia de vencimento deve estar entre 1 e 31.",
     "successCreate": "Cartão criado com sucesso.",
     "successUpdate": "Cartão atualizado com sucesso.",
     "successDelete": "Cartão removido com sucesso."
+  },
+  "transactions": {
+    "title": "Transações de cartão",
+    "listTitle": "Transações",
+    "formDescription": "Informe os dados da compra e da forma de pagamento.",
+    "new": "Nova transação",
+    "edit": "Editar transação",
+    "deleteTitle": "Excluir transação",
+    "deleteConfirm": "Deseja realmente excluir '{{description}}'?",
+    "search": "Buscar descrição, devedor ou cartão",
+    "filterCard": "Todos os cartões",
+    "filterType": "Todos os tipos de transação",
+    "filterPurchase": "Todas as opções de compra",
+    "filterDebtor": "Todos os devedores",
+    "clearFilters": "Limpar filtros",
+    "selectAll": "Selecionar todas as transações visíveis",
+    "selectOne": "Selecionar {{description}}",
+    "retry": "Tentar novamente",
+    "resultCount": "{{count}} transações",
+    "empty": "Ainda não há transações cadastradas.",
+    "noMatches": "Nenhuma transação corresponde aos filtros.",
+    "noDescription": "Compra sem descrição",
+    "unknownCard": "Cartão desconhecido",
+    "noCards": "Cadastre um cartão de crédito antes de incluir transações.",
+    "openCards": "Ir para cartões de crédito",
+    "selectCard": "Selecione um cartão de crédito",
+    "fields": {
+      "card": "Cartão de crédito",
+      "installments": "Parcelas",
+      "amount": "Valor",
+      "installmentAmount": "Valor da parcela",
+      "debtor": "Devedor",
+      "type": "Tipo da transação",
+      "description": "Descrição",
+      "date": "Data da compra",
+      "purchase": "Compra"
+    },
+    "types": {
+      "mainCard": "Cartão principal",
+      "purchase": "Compra",
+      "credit": "Crédito"
+    },
+    "purchaseTypes": {
+      "firstFortnight": "1ª quinzena",
+      "secondFortnight": "2ª quinzena",
+      "installmentPlan": "Parcelamento"
+    },
+    "validation": {
+      "cardRequired": "Selecione um cartão de crédito cadastrado.",
+      "installmentsPositive": "O total de parcelas deve ser um número inteiro positivo.",
+      "amountDecimals": "Informe um valor com no máximo duas casas decimais.",
+      "amountPositive": "O valor da parcela deve ser maior que zero.",
+      "debtorMaxLength": "O devedor deve ter no máximo 20 caracteres.",
+      "debtorRequired": "O devedor é obrigatório para transações do tipo crédito.",
+      "descriptionMaxLength": "A descrição deve ter no máximo 50 caracteres.",
+      "dateRequired": "Informe uma data válida para a compra.",
+      "fortnightOneInstallment": "Compras por quinzena devem ter exatamente uma parcela."
+    },
+    "created": "Transação criada com sucesso.",
+    "updated": "Transação atualizada com sucesso.",
+    "deleted": "Transação excluída com sucesso."
   }
 }

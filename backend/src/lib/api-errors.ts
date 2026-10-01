@@ -1,0 +1,147 @@
+import type { ErrorRequestHandler, Request, RequestHandler, Response } from 'express';
+
+const ptBRMessages = {
+  internalServerError: 'Erro interno do servidor.',
+  invalidJsonBody: 'O corpo da requisição contém JSON inválido.',
+  requestBodyTooLarge: 'O corpo da requisição excede o tamanho permitido.',
+  originNotAllowed: 'A origem da requisição não é permitida.',
+  requestBodyObject: 'O corpo da requisição deve ser um objeto JSON.',
+  idPositiveInteger: 'O id deve ser um número inteiro positivo.',
+  creditCardNotFound: 'Cartão de crédito não encontrado.',
+  creditCardIdGenerated: 'O id do cartão é gerado pelo sistema e não pode ser informado.',
+  creditCardIdImmutable: 'O id do cartão não pode ser alterado.',
+  creditCardNameRequired: 'O nome do cartão não pode ficar vazio.',
+  creditCardNameMaxLength: 'O nome do cartão deve ter no máximo 20 caracteres.',
+  creditCardDueDayRange: 'O dia de vencimento deve ser um número inteiro entre 1 e 31.',
+  creditCardReferenced: 'O cartão está associado a outros registros e não pode ser excluído.',
+  transactionNotFound: 'Transação não encontrada.',
+  transactionIdGenerated: 'O id da transação é gerado pelo sistema e não pode ser informado.',
+  transactionIdImmutable: 'O id da transação não pode ser alterado.',
+  transactionCreditCardRequired: 'Selecione um cartão de crédito válido.',
+  transactionCreditCardNotFound: 'O cartão de crédito selecionado não foi encontrado.',
+  transactionInstallmentsPositiveInteger: 'O total de parcelas deve ser um número inteiro maior que zero.',
+  transactionInstallmentAmountPositive: 'O valor da parcela deve ser maior que zero.',
+  transactionInstallmentAmountInvalid: 'O valor da parcela deve ser um número decimal válido.',
+  transactionInstallmentAmountMaxDecimals: 'O valor da parcela deve ter no máximo duas casas decimais.',
+  transactionDebtorInvalid: 'O devedor deve ser um texto válido.',
+  transactionDebtorMaxLength: 'O devedor deve ter no máximo 20 caracteres.',
+  transactionDebtorRequiredForCredit: 'O devedor é obrigatório para transações do tipo crédito.',
+  transactionTypeInvalid: 'O tipo da transação informado é inválido.',
+  transactionDescriptionInvalid: 'A descrição deve ser um texto válido.',
+  transactionDescriptionMaxLength: 'A descrição deve ter no máximo 50 caracteres.',
+  transactionDateISO: 'A data deve ser válida e estar no formato AAAA-MM-DD.',
+  transactionPurchaseTypeInvalid: 'O tipo de compra informado é inválido.',
+  transactionFortnightOneInstallment: 'Compras de quinzena devem ter exatamente uma parcela.',
+} as const;
+
+export type BackendLocale = 'pt-BR' | 'en';
+export type ApiMessageKey = keyof typeof ptBRMessages;
+
+const enMessages: Record<ApiMessageKey, string> = {
+  internalServerError: 'Internal server error.',
+  invalidJsonBody: 'Request body contains invalid JSON.',
+  requestBodyTooLarge: 'Request body exceeds the allowed size.',
+  originNotAllowed: 'Request origin is not allowed.',
+  requestBodyObject: 'Request body must be a JSON object.',
+  idPositiveInteger: 'id must be a positive integer.',
+  creditCardNotFound: 'Credit card not found.',
+  creditCardIdGenerated: 'Credit card id is generated and cannot be set.',
+  creditCardIdImmutable: 'Credit card id cannot be changed.',
+  creditCardNameRequired: 'Credit card name must not be empty.',
+  creditCardNameMaxLength: 'Credit card name must have at most 20 characters.',
+  creditCardDueDayRange: 'Due day must be an integer between 1 and 31.',
+  creditCardReferenced: 'Credit card is referenced by other records and cannot be deleted.',
+  transactionNotFound: 'Transaction not found.',
+  transactionIdGenerated: 'Transaction id is generated and cannot be set.',
+  transactionIdImmutable: 'Transaction id cannot be changed.',
+  transactionCreditCardRequired: 'A valid credit card must be selected.',
+  transactionCreditCardNotFound: 'The selected credit card was not found.',
+  transactionInstallmentsPositiveInteger: 'Total installments must be a positive integer.',
+  transactionInstallmentAmountPositive: 'Installment amount must be greater than zero.',
+  transactionInstallmentAmountInvalid: 'Installment amount must be a valid decimal number.',
+  transactionInstallmentAmountMaxDecimals: 'Installment amount must have at most two decimal places.',
+  transactionDebtorInvalid: 'Debtor must be valid text.',
+  transactionDebtorMaxLength: 'Debtor must have at most 20 characters.',
+  transactionDebtorRequiredForCredit: 'Debtor is required for credit transactions.',
+  transactionTypeInvalid: 'Transaction type is invalid.',
+  transactionDescriptionInvalid: 'Description must be valid text.',
+  transactionDescriptionMaxLength: 'Description must have at most 50 characters.',
+  transactionDateISO: 'Date must be valid and use the YYYY-MM-DD format.',
+  transactionPurchaseTypeInvalid: 'Purchase type is invalid.',
+  transactionFortnightOneInstallment: 'Fortnight purchases must have exactly one installment.',
+};
+
+const translations: Record<BackendLocale, Record<ApiMessageKey, string>> = {
+  'pt-BR': ptBRMessages,
+  en: enMessages,
+};
+
+export class ApiError extends Error {
+  constructor(
+    readonly statusCode: number,
+    readonly messageKey: ApiMessageKey,
+  ) {
+    super(messageKey);
+    this.name = 'ApiError';
+  }
+}
+
+export function translate(locale: BackendLocale, key: ApiMessageKey): string {
+  return translations[locale][key];
+}
+
+function localeForRequest(request: Request): BackendLocale {
+  return request.acceptsLanguages('pt-BR', 'pt', 'en') === 'en' ? 'en' : 'pt-BR';
+}
+
+function errorType(error: unknown): string | undefined {
+  if (typeof error === 'object' && error !== null && 'type' in error && typeof error.type === 'string') {
+    return error.type;
+  }
+
+  return undefined;
+}
+
+function sendError(error: unknown, request: Request, response: Response): void {
+  const locale = localeForRequest(request);
+  if (error instanceof ApiError) {
+    response.status(error.statusCode).json({ error: translate(locale, error.messageKey) });
+    return;
+  }
+
+  const type = errorType(error);
+  if (type === 'entity.parse.failed') {
+    response.status(400).json({ error: translate(locale, 'invalidJsonBody') });
+    return;
+  }
+  if (type === 'entity.too.large') {
+    response.status(413).json({ error: translate(locale, 'requestBodyTooLarge') });
+    return;
+  }
+
+  console.error('API request failed:', error);
+  response.status(500).json({ error: translate(locale, 'internalServerError') });
+}
+
+type AsyncController = (request: Request, response: Response) => Promise<void>;
+
+// Negocia o idioma uma vez na camada HTTP e mantem services independentes de headers.
+export function withErrorHandling(handler: AsyncController): RequestHandler {
+  return async (request, response) => {
+    try {
+      await handler(request, response);
+    } catch (error) {
+      sendError(error, request, response);
+    }
+  };
+}
+
+// Trata erros que acontecem antes dos controllers, como JSON malformado e falhas de CORS.
+export const apiErrorMiddleware: ErrorRequestHandler = (error, request, response, next) => {
+  if (response.headersSent) {
+    next(error);
+    return;
+  }
+
+  sendError(error, request, response);
+};

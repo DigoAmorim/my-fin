@@ -10,7 +10,7 @@ type CreditCardFormProps = {
   form: CreditCardFormType;
   isEditing: boolean;
   isSaving: boolean;
-  errorMessage: string;
+  validationError: string;
   onChange: (nextForm: CreditCardFormType) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
@@ -21,16 +21,17 @@ export function CreditCardForm({
   form,
   isEditing,
   isSaving,
-  errorMessage,
+  validationError,
   onChange,
   onSubmit,
   onCancel,
 }: CreditCardFormProps) {
   const { t } = useTranslation();
 
+  // Formulário controlado: valores e ações pertencem à página que o utiliza.
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onCancel(); }}>
-      <DialogContent className="gap-0 rounded-xl p-0 shadow-[0_20px_60px_rgba(20,30,55,0.18)] sm:max-w-[440px]">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) onCancel(); }}>
+      <DialogContent className="gap-0 rounded-xl p-0 shadow-xl sm:max-w-[440px]">
         <DialogHeader className="px-[1.4rem] pb-[0.8rem] pr-12 pt-5">
           <div>
             <DialogTitle>
@@ -48,6 +49,7 @@ export function CreditCardForm({
               value={form.name}
               onChange={(event) => onChange({ ...form, name: event.target.value })}
               placeholder="Banco do Brasil"
+              disabled={isSaving}
               required
             />
           </div>
@@ -61,14 +63,15 @@ export function CreditCardForm({
               max={31}
               value={form.dueDay}
               onChange={(event) => onChange({ ...form, dueDay: Number(event.target.value) })}
+              disabled={isSaving}
               required
             />
           </div>
 
-        {errorMessage ? <p className="m-0 text-[0.8rem] text-destructive" role="alert">{errorMessage}</p> : null}
+        {validationError ? <p className="m-0 text-[0.8rem] text-destructive" role="alert">{validationError}</p> : null}
 
         <DialogFooter className="mt-1">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
             {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={isSaving}>

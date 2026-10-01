@@ -15,6 +15,7 @@ export const i18nReady = i18n
     },
     fallbackLng: 'pt-BR',
     supportedLngs: ['pt-BR', 'en'],
+    // Prioriza o idioma salvo; se não houver, tenta o idioma do navegador e por fim o HTML.
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],

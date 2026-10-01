@@ -1,38 +1,49 @@
-import { Plus, Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { CreditCardForm } from '../components/credit-card/credit-card-form';
 import { CreditCardTable } from '../components/credit-card/credit-card-table';
-import { AppLayout } from '../components/layout/app-layout';
+import { AppLayout, type AppPage } from '../components/layout/app-layout';
+import { ContentSection } from '../components/layout/content-section';
+import { PageContainer } from '../components/layout/page-container';
 import { PageHeader } from '../components/layout/page-header';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog';
 import { createCreditCard, deleteCreditCard, listCreditCards, updateCreditCard } from '../lib/credit-card-api';
 import type { CreditCard, CreditCardForm as CreditCardFormType } from '../types/credit-card';
 
 const emptyForm: CreditCardFormType = { name: '', dueDay: 1 };
 
-export function CreditCardsPage() {
+type CreditCardsPageProps = {
+  onNavigate: (page: AppPage) => void;
+};
+
+export function CreditCardsPage({ onNavigate }: CreditCardsPageProps) {
   const { t, i18n } = useTranslation();
+  // A página mantém os dados e controla os diálogos; os componentes filhos recebem estado e callbacks.
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cards, setCards] = useState<CreditCard[]>([]);
+  const [deletingCard, setDeletingCard] = useState<CreditCard | null>(null);
   const [form, setForm] = useState<CreditCardFormType>(emptyForm);
   const [editingCardId, setEditingCardId] = useState<number | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [searchText, setSearchText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loadErrorMessage, setLoadErrorMessage] = useState('');
+  const [formErrorMessage, setFormErrorMessage] = useState('');
   const isEditing = editingCardId !== null;
 
-  const filteredCards = useMemo(() => {
-    const query = searchText.trim().toLowerCase();
-    if (!query) return cards;
-
-    return cards.filter((card) => card.name.toLowerCase().includes(query));
-  }, [cards, searchText]);
-
   useEffect(() => {
+    // Evita atualizar estado caso a página seja desmontada antes da resposta da API.
     let isMounted = true;
 
     void listCreditCards()
@@ -41,7 +52,7 @@ export function CreditCardsPage() {
       })
       .catch((loadError: unknown) => {
         if (isMounted) {
-          setErrorMessage(loadError instanceof Error ? loadError.message : 'Unexpected error.');
+          setLoadErrorMessage(loadError instanceof Error ? loadError.message : 'Unexpected error.');
         }
       })
       .finally(() => {
@@ -56,7 +67,7 @@ export function CreditCardsPage() {
   function resetForm() {
     setForm(emptyForm);
     setEditingCardId(null);
-    setErrorMessage('');
+    setFormErrorMessage('');
     setIsFormOpen(false);
   }
 
@@ -72,18 +83,19 @@ export function CreditCardsPage() {
   function handleEdit(card: CreditCard) {
     setForm({ name: card.name, dueDay: card.dueDay });
     setEditingCardId(card.id);
-    setErrorMessage('');
+    setFormErrorMessage('');
     setIsFormOpen(true);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    // Valida os dados antes de escolher entre criar um novo cartão ou atualizar o existente.
     const cleanedName = form.name.trim();
     const dueDay = Number(form.dueDay);
 
     if (!cleanedName || !Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) {
-      setErrorMessage(
+      setFormErrorMessage(
         !cleanedName ? t('creditCards.errorRequired') : t('creditCards.errorInvalidDueDay'),
       );
       return;
@@ -91,15 +103,16 @@ export function CreditCardsPage() {
 
     try {
       setIsSaving(true);
-      setErrorMessage('');
+      setFormErrorMessage('');
 
+      const wasEditing = editingCardId !== null;
       const payload = { name: cleanedName, dueDay };
-      const saved = editingCardId !== null
+      const saved = wasEditing
         ? await updateCreditCard(editingCardId, payload)
         : await createCreditCard(payload);
 
       setCards((currentCards) => {
-        if (editingCardId !== null) {
+        if (wasEditing) {
           return currentCards.map((card) => (card.id === saved.id ? saved : card));
         }
 
@@ -107,78 +120,110 @@ export function CreditCardsPage() {
       });
 
       resetForm();
+      toast.success(t(wasEditing ? 'creditCards.successUpdate' : 'creditCards.successCreate'));
     } catch (submitError) {
-      setErrorMessage(submitError instanceof Error ? submitError.message : 'Unexpected error.');
+      toast.error(submitError instanceof Error ? submitError.message : t('common.error'));
     } finally {
       setIsSaving(false);
     }
   }
 
-  async function handleDelete(card: CreditCard) {
-    const confirmed = window.confirm(t('creditCards.deleteConfirm'));
-    if (!confirmed) return;
+  function handleDelete(card: CreditCard) {
+    setDeletingCard(card);
+  }
+
+  async function confirmDelete() {
+    if (!deletingCard) return;
 
     try {
-      await deleteCreditCard(card.id);
-      setCards((currentCards) => currentCards.filter((item) => item.id !== card.id));
-      if (editingCardId === card.id) resetForm();
+      setIsDeleting(true);
+      await deleteCreditCard(deletingCard.id);
+      // Só remove da tela depois que o servidor confirmar a exclusão.
+      setCards((currentCards) => currentCards.filter((item) => item.id !== deletingCard.id));
+      if (editingCardId === deletingCard.id) resetForm();
+      setDeletingCard(null);
+      toast.success(t('creditCards.successDelete'));
     } catch (deleteError) {
-      setErrorMessage(deleteError instanceof Error ? deleteError.message : 'Delete failed.');
+      toast.error(deleteError instanceof Error ? deleteError.message : t('common.error'));
+    } finally {
+      setIsDeleting(false);
     }
   }
 
   return (
     <AppLayout
+      currentPage="creditCards"
+      onNavigate={onNavigate}
       sidebarOpen={sidebarOpen}
       onToggleSidebar={() => setSidebarOpen((current) => !current)}
       onToggleLanguage={toggleLanguage}
     >
-      <div className="mx-auto flex w-[min(1080px,calc(100%-48px))] flex-col gap-[1.2rem] pb-10 pt-[3.4rem] max-md:w-[calc(100%-32px)] max-md:gap-4 max-md:pb-8 max-md:pt-4">
-        <PageHeader section={t('nav.creditCards')} title={t('creditCards.title')} />
+      <PageContainer>
+        <PageHeader
+          section={t('nav.creditCards')}
+          title={t('creditCards.title')}
+          action={(
+            <Button size="small" onClick={handleNew}>
+              <Plus size={15} />
+              {t('creditCards.new')}
+            </Button>
+          )}
+        />
 
-        <section className="min-w-0 overflow-hidden rounded-xl border border-[#e5e8ed] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.07),0_2px_6px_rgba(15,23,42,0.025)]">
-          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-[#e9edf2] px-4 py-3 max-md:flex-col max-md:items-start max-md:gap-3 max-md:px-[0.9rem] max-md:py-[0.85rem]">
-            <h2 className="m-0 text-[0.86rem] font-semibold text-[#1d2939]">{t('creditCards.listTitle')}</h2>
-            <div className="flex items-center gap-[0.6rem] max-md:w-full">
-              <label className="flex w-[210px] items-center gap-2 rounded-md border border-[#e3e7ed] bg-white pl-[0.65rem] text-[#8b95a5] max-md:min-w-0 max-md:w-auto max-md:flex-1">
-                <Search size={15} aria-hidden="true" />
-                <Input
-                  type="search"
-                  value={searchText}
-                  onChange={(event) => setSearchText(event.target.value)}
-                  placeholder={t('common.search')}
-                  aria-label={t('common.search')}
-                  className="h-8 border-0 py-0 pl-0 text-[0.76rem] shadow-none focus-visible:ring-0"
-                />
-              </label>
-              <Button size="small" onClick={handleNew}>
-                <Plus size={15} />
-                {t('creditCards.new')}
-              </Button>
-            </div>
+        <ContentSection>
+          <div className="border-b border-border px-4 py-3 max-md:px-[0.9rem] max-md:py-[0.85rem]">
+            <h2 className="m-0 text-[0.86rem] font-semibold text-foreground">{t('creditCards.listTitle')}</h2>
           </div>
 
-          {errorMessage && !isFormOpen ? <p className="m-0 border-b border-rose-200 bg-rose-50 px-4 py-3 text-[0.8rem] text-rose-700" role="alert">{errorMessage}</p> : null}
+          {loadErrorMessage ? <p className="m-0 border-b border-destructive/20 bg-destructive/5 px-4 py-3 text-[0.8rem] text-destructive" role="alert">{loadErrorMessage}</p> : null}
 
           <CreditCardTable
-            cards={filteredCards}
+            cards={cards}
             isLoading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-        </section>
-      </div>
+        </ContentSection>
+      </PageContainer>
 
       <CreditCardForm
         isOpen={isFormOpen}
         form={form}
         isEditing={isEditing}
         isSaving={isSaving}
-        errorMessage={errorMessage}
+        validationError={formErrorMessage}
         onChange={setForm}
         onSubmit={handleSubmit}
         onCancel={resetForm}
       />
+
+      <Dialog
+        open={deletingCard !== null}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) setDeletingCard(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('common.delete')}</DialogTitle>
+            <DialogDescription>
+              {t('creditCards.deleteConfirm', { name: deletingCard?.name ?? '' })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeletingCard(null)}
+              disabled={isDeleting}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={() => void confirmDelete()} disabled={isDeleting}>
+              {t('common.delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

@@ -9,7 +9,7 @@ const variantClasses = {
   primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
   outline: 'border border-border bg-background text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground',
   ghost: 'bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-  danger: 'bg-rose-50 text-[#be4255] hover:bg-rose-100',
+  danger: 'bg-destructive/10 text-destructive hover:bg-destructive/15',
 };
 
 const sizeClasses = {

@@ -9,6 +9,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/server.js",
     "db:migrate": "tsx database/migrate.ts",
+    "test": "tsx --test src/modules/transaction/transaction-service.test.ts",
     "lint": "oxlint src database"
   },
   "dependencies": {
