@@ -1,5 +1,5 @@
 export type TransactionType = 'main_card' | 'purchase' | 'credit';
-export type PurchaseType = 'first_fortnight' | 'second_fortnight' | 'installment_plan';
+export type PurchaseType = 'first_fortnight' | 'second_fortnight' | 'installment_plan' | 'recurring';
 
 export type Transaction = {
   id: number;

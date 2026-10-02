@@ -1,22 +1,11 @@
 import { Pencil, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CreditCard } from '../../types/credit-card';
-import type { PurchaseType, Transaction, TransactionType } from '../../types/transaction';
+import type { Transaction } from '../../types/transaction';
+import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../../lib/transaction-labels';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-
-const transactionTypeLabelKeys: Record<TransactionType, string> = {
-  main_card: 'transactions.types.mainCard',
-  purchase: 'transactions.types.purchase',
-  credit: 'transactions.types.credit',
-};
-
-const purchaseTypeLabelKeys: Record<PurchaseType, string> = {
-  first_fortnight: 'transactions.purchaseTypes.firstFortnight',
-  second_fortnight: 'transactions.purchaseTypes.secondFortnight',
-  installment_plan: 'transactions.purchaseTypes.installmentPlan',
-};
 
 type TransactionTableProps = {
   transactions: Transaction[];
@@ -24,6 +13,8 @@ type TransactionTableProps = {
   isLoading: boolean;
   locale: string;
   emptyMessage: string;
+  selectedIds: Set<number>;
+  onSelectionChange: (selectedIds: Set<number>) => void;
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
 };
@@ -34,11 +25,12 @@ export function TransactionTable({
   isLoading,
   locale,
   emptyMessage,
+  selectedIds,
+  onSelectionChange,
   onEdit,
   onDelete,
 }: TransactionTableProps) {
   const { t } = useTranslation();
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
 
   // Reaproveita os lookups e o formatador entre renderizacoes da mesma lista.
   const cardNames = useMemo(() => new Map(cards.map((card) => [card.id, card.name])), [cards]);
@@ -57,21 +49,17 @@ export function TransactionTable({
   const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id)) && !allVisibleSelected;
 
   function toggleTransaction(id: number) {
-    setSelectedIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    onSelectionChange(next);
   }
 
   function toggleVisibleTransactions() {
-    setSelectedIds((current) => {
-      const next = new Set(current);
-      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
-      else visibleIds.forEach((id) => next.add(id));
-      return next;
-    });
+    const next = new Set(selectedIds);
+    if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+    else visibleIds.forEach((id) => next.add(id));
+    onSelectionChange(next);
   }
 
   // Cada estado da tabela tem uma resposta dedicada para evitar linhas inconsistentes.

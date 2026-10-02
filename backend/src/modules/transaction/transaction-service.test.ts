@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ApiError } from '../../lib/api-errors';
-import { parseTransactionFields } from './transaction-service';
+import { parsePaymentInput, parsePaymentMonth, parseTransactionFields } from './transaction-service';
 
 const validFortnightTransaction = {
   creditCardId: 12,
@@ -14,6 +14,40 @@ const validFortnightTransaction = {
   purchaseType: 'first_fortnight',
 };
 
+test('parses a selected card payment month and transaction ids', () => {
+  assert.deepEqual(parsePaymentInput({
+    creditCardId: 12,
+    paymentMonth: '2026-10',
+    transactionIds: [2, 4],
+  }), {
+    creditCardId: 12,
+    paymentMonth: '2026-10-01',
+    transactionIds: [2, 4],
+  });
+});
+
+test('requires a valid month and at least one transaction for payment', () => {
+  for (const paymentMonth of ['2026-13', '0000-01', '2026-1', '']) {
+    assert.throws(
+      () => parsePaymentInput({ creditCardId: 12, paymentMonth, transactionIds: [2] }),
+      (error: unknown) => error instanceof ApiError && error.messageKey === 'transactionPaymentMonthInvalid',
+    );
+  }
+
+  assert.throws(
+    () => parsePaymentInput({ creditCardId: 12, paymentMonth: '2026-10', transactionIds: [] }),
+    (error: unknown) => error instanceof ApiError && error.messageKey === 'transactionPaymentSelectionRequired',
+  );
+});
+
+test('rejects invalid or duplicate transaction ids for payment', () => {
+  for (const transactionIds of [[0], [2, 2]]) {
+    assert.throws(
+      () => parsePaymentInput({ creditCardId: 12, paymentMonth: '2026-10', transactionIds }),
+      ApiError,
+    );
+  }
+});
 test('normalizes optional text and keeps installment amount at two decimal places', () => {
   assert.deepEqual(parseTransactionFields(validFortnightTransaction), {
     ...validFortnightTransaction,
@@ -66,11 +100,23 @@ test('enforces debtor and description character limits', () => {
   );
 });
 
-test('requires one installment for either fortnight option', () => {
-  assert.throws(
-    () => parseTransactionFields({ ...validFortnightTransaction, totalInstallments: 2 }),
-    (error: unknown) => error instanceof ApiError && error.messageKey === 'transactionFortnightOneInstallment',
-  );
+test('requires one installment for fortnight and recurring purchase types', () => {
+  for (const purchaseType of ['first_fortnight', 'second_fortnight', 'recurring']) {
+    assert.throws(
+      () => parseTransactionFields({ ...validFortnightTransaction, purchaseType, totalInstallments: 2 }),
+      (error: unknown) => error instanceof ApiError && error.messageKey === 'transactionSingleInstallmentRequired',
+    );
+  }
+});
+
+test('allows one installment for recurring purchases', () => {
+  const transaction = parseTransactionFields({
+    ...validFortnightTransaction,
+    purchaseType: 'recurring',
+  });
+
+  assert.equal(transaction.totalInstallments, 1);
+  assert.equal(transaction.purchaseType, 'recurring');
 });
 
 test('allows one installment for installment plans', () => {
@@ -95,4 +141,15 @@ test('rejects year zero, which PostgreSQL DATE does not support', () => {
     () => parseTransactionFields({ ...validFortnightTransaction, date: '0000-01-01' }),
     (error: unknown) => error instanceof ApiError && error.messageKey === 'transactionDateISO',
   );
+});
+
+test('accepts an omitted history month and validates a requested month', () => {
+  assert.equal(parsePaymentMonth(undefined), null);
+  assert.equal(parsePaymentMonth('2026-10'), '2026-10');
+  for (const month of ['2026-13', '0000-01', '2026-1', null]) {
+    assert.throws(
+      () => parsePaymentMonth(month),
+      (error: unknown) => error instanceof ApiError && error.messageKey === 'transactionPaymentMonthInvalid',
+    );
+  }
 });

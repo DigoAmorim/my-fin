@@ -2,8 +2,10 @@ import { Router } from 'express';
 import {
   createTransaction,
   deleteTransaction,
+  getPaymentHistory,
   getTransaction,
   listTransactions,
+  payTransactions,
   updateTransaction,
 } from './transaction-controller';
 
@@ -11,6 +13,8 @@ import {
 export const transactionRouter = Router();
 
 transactionRouter.get('/', listTransactions);
+transactionRouter.get('/payments', getPaymentHistory);
+transactionRouter.post('/payments', payTransactions);
 transactionRouter.get('/:id', getTransaction);
 transactionRouter.post('/', createTransaction);
 transactionRouter.put('/:id', updateTransaction);

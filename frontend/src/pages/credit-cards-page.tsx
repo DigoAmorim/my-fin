@@ -27,7 +27,7 @@ type CreditCardsPageProps = {
 };
 
 export function CreditCardsPage({ onNavigate }: CreditCardsPageProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   // A página mantém os dados e controla os diálogos; os componentes filhos recebem estado e callbacks.
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cards, setCards] = useState<CreditCard[]>([]);
@@ -43,24 +43,22 @@ export function CreditCardsPage({ onNavigate }: CreditCardsPageProps) {
   const isEditing = editingCardId !== null;
 
   useEffect(() => {
-    // Evita atualizar estado caso a página seja desmontada antes da resposta da API.
-    let isMounted = true;
+    const controller = new AbortController();
 
-    void listCreditCards()
+    void listCreditCards(controller.signal)
       .then((nextCards) => {
-        if (isMounted) setCards(nextCards);
+        if (controller.signal.aborted) return;
+        setCards(nextCards);
+        setIsLoading(false);
       })
       .catch((loadError: unknown) => {
-        if (isMounted) {
-          setLoadErrorMessage(loadError instanceof Error ? loadError.message : 'Unexpected error.');
-        }
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
+        if (controller.signal.aborted) return;
+        setLoadErrorMessage(loadError instanceof Error ? loadError.message : 'Unexpected error.');
+        setIsLoading(false);
       });
 
     return () => {
-      isMounted = false;
+      controller.abort();
     };
   }, []);
 
@@ -74,10 +72,6 @@ export function CreditCardsPage({ onNavigate }: CreditCardsPageProps) {
   function handleNew() {
     resetForm();
     setIsFormOpen(true);
-  }
-
-  function toggleLanguage() {
-    void i18n.changeLanguage(i18n.language === 'pt-BR' ? 'en' : 'pt-BR');
   }
 
   function handleEdit(card: CreditCard) {
@@ -156,7 +150,6 @@ export function CreditCardsPage({ onNavigate }: CreditCardsPageProps) {
       onNavigate={onNavigate}
       sidebarOpen={sidebarOpen}
       onToggleSidebar={() => setSidebarOpen((current) => !current)}
-      onToggleLanguage={toggleLanguage}
     >
       <PageContainer>
         <PageHeader

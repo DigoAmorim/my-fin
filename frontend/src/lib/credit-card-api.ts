@@ -1,8 +1,8 @@
 import type { CreditCard, CreditCardForm } from '../types/credit-card';
 import { apiRequest } from './api-client';
 
-export function listCreditCards(): Promise<CreditCard[]> {
-  return apiRequest('/api/credit-cards', {}, 'Could not load credit cards.');
+export function listCreditCards(signal?: AbortSignal): Promise<CreditCard[]> {
+  return apiRequest('/api/credit-cards', { signal }, 'Could not load credit cards.');
 }
 
 export function createCreditCard(input: CreditCardForm): Promise<CreditCard> {

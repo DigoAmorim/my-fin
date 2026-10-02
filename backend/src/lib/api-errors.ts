@@ -31,7 +31,12 @@ const ptBRMessages = {
   transactionDescriptionMaxLength: 'A descrição deve ter no máximo 50 caracteres.',
   transactionDateISO: 'A data deve ser válida e estar no formato AAAA-MM-DD.',
   transactionPurchaseTypeInvalid: 'O tipo de compra informado é inválido.',
-  transactionFortnightOneInstallment: 'Compras de quinzena devem ter exatamente uma parcela.',
+  transactionSingleInstallmentRequired: 'Este tipo de compra deve ter exatamente uma parcela.',
+  transactionPaymentMonthInvalid: 'Selecione um mês válido para o pagamento.',
+  transactionPaymentSelectionRequired: 'Selecione ao menos uma transação para pagar.',
+  transactionPaymentSelectionInvalid: 'A seleção de transações contém ids inválidos ou repetidos.',
+  transactionPaymentCardMismatch: 'Todas as transações selecionadas devem pertencer ao cartão escolhido.',
+  transactionAlreadyPaidForMonth: 'Uma ou mais transações já foram pagas neste mês.',
 } as const;
 
 export type BackendLocale = 'pt-BR' | 'en';
@@ -68,7 +73,12 @@ const enMessages: Record<ApiMessageKey, string> = {
   transactionDescriptionMaxLength: 'Description must have at most 50 characters.',
   transactionDateISO: 'Date must be valid and use the YYYY-MM-DD format.',
   transactionPurchaseTypeInvalid: 'Purchase type is invalid.',
-  transactionFortnightOneInstallment: 'Fortnight purchases must have exactly one installment.',
+  transactionSingleInstallmentRequired: 'This purchase type must have exactly one installment.',
+  transactionPaymentMonthInvalid: 'Select a valid payment month.',
+  transactionPaymentSelectionRequired: 'Select at least one transaction to pay.',
+  transactionPaymentSelectionInvalid: 'The transaction selection contains invalid or duplicate ids.',
+  transactionPaymentCardMismatch: 'All selected transactions must belong to the chosen card.',
+  transactionAlreadyPaidForMonth: 'One or more transactions have already been paid this month.',
 };
 
 const translations: Record<BackendLocale, Record<ApiMessageKey, string>> = {

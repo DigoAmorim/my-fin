@@ -1,9 +1,9 @@
-import { ChartColumn, CreditCard, Languages, Landmark, Menu, PiggyBank, ReceiptText } from 'lucide-react';
+import { CreditCard, Languages, Menu, Receipt, ReceiptText } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 
-export type AppPage = 'creditCards' | 'transactions';
+export type AppPage = 'creditCards' | 'transactions' | 'invoices';
 
 function navItemClass(isActive: boolean): string {
   return cn(
@@ -20,7 +20,6 @@ type AppLayoutProps = {
   onNavigate: (page: AppPage) => void;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
-  onToggleLanguage: () => void;
 };
 
 export function AppLayout({
@@ -29,9 +28,12 @@ export function AppLayout({
   onNavigate,
   sidebarOpen,
   onToggleSidebar,
-  onToggleLanguage,
 }: AppLayoutProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const toggleLanguage = () => {
+    const language = i18n.resolvedLanguage ?? i18n.language;
+    void i18n.changeLanguage(language.toLowerCase().startsWith('pt') ? 'en' : 'pt-BR');
+  };
 
   // Estrutura compartilhada da aplicação: navegação lateral, controle mobile e conteúdo da página.
   return (
@@ -45,7 +47,7 @@ export function AppLayout({
             <strong className="block text-[0.95rem] leading-none text-foreground">{t('app.name')}</strong>
           </div>
           <div className="ml-auto flex items-center gap-[0.15rem]">
-            <button type="button" className="inline-flex size-[1.8rem] items-center justify-center rounded-[0.4rem] border-0 bg-transparent p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" onClick={onToggleLanguage} aria-label={t('toolbar.language')} title={t('toolbar.language')}>
+            <button type="button" className="inline-flex size-[1.8rem] items-center justify-center rounded-[0.4rem] border-0 bg-transparent p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" onClick={toggleLanguage} aria-label={t('toolbar.language')} title={t('toolbar.language')}>
               <Languages size={16} />
             </button>
           </div>
@@ -56,15 +58,6 @@ export function AppLayout({
             <span className="px-[0.65rem] py-[0.3rem] text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">{t('nav.groupAccounts')}</span>
             <button
               type="button"
-              aria-current={currentPage === 'creditCards' ? 'page' : undefined}
-              onClick={() => onNavigate('creditCards')}
-              className={navItemClass(currentPage === 'creditCards')}
-            >
-              <CreditCard size={17} />
-              <span>{t('nav.creditCards')}</span>
-            </button>
-            <button
-              type="button"
               aria-current={currentPage === 'transactions' ? 'page' : undefined}
               onClick={() => onNavigate('transactions')}
               className={navItemClass(currentPage === 'transactions')}
@@ -72,23 +65,25 @@ export function AppLayout({
               <ReceiptText size={17} />
               <span>{t('nav.transactions')}</span>
             </button>
-            <button type="button" className="flex cursor-pointer items-center gap-[0.65rem] rounded-[0.45rem] border-0 bg-transparent px-[0.65rem] py-[0.55rem] text-left text-[0.82rem] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-              <Landmark size={17} />
-              <span>{t('nav.overview')}</span>
-            </button>
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <span className="px-[0.65rem] py-[0.3rem] text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">{t('nav.groupAnalysis')}</span>
-            <button type="button" className="flex cursor-pointer items-center gap-[0.65rem] rounded-[0.45rem] border-0 bg-transparent px-[0.65rem] py-[0.55rem] text-left text-[0.82rem] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-              <ChartColumn size={17} />
-              <span>{t('nav.reports')}</span>
+            <button
+              type="button"
+              aria-current={currentPage === 'invoices' ? 'page' : undefined}
+              onClick={() => onNavigate('invoices')}
+              className={navItemClass(currentPage === 'invoices')}
+            >
+              <Receipt size={17} />
+              <span>{t('nav.invoices')}</span>
             </button>
           </div>
           <div className="flex flex-col gap-0.5">
             <span className="px-[0.65rem] py-[0.3rem] text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">{t('nav.groupSettings')}</span>
-            <button type="button" className="flex cursor-pointer items-center gap-[0.65rem] rounded-[0.45rem] border-0 bg-transparent px-[0.65rem] py-[0.55rem] text-left text-[0.82rem] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-              <PiggyBank size={17} />
-              <span>{t('nav.budgets')}</span>
+            <button
+              type="button"
+              aria-current={currentPage === 'creditCards' ? 'page' : undefined}
+              onClick={() => onNavigate('creditCards')}
+              className={navItemClass(currentPage === 'creditCards')}>
+              <CreditCard size={17} />
+              <span>{t('nav.creditCards')}</span>
             </button>
           </div>
         </nav>

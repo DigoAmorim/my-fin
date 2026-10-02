@@ -4,6 +4,9 @@ import * as repository from './transaction-repository';
 import {
   PURCHASE_TYPES,
   TRANSACTION_TYPES,
+  type PaymentInput,
+  type PaymentHistory,
+  type PaymentResult,
   type PurchaseType,
   type Transaction,
   type TransactionFields,
@@ -121,7 +124,7 @@ export function parseTransactionFields(input: unknown): TransactionFields {
     throw new ApiError(400, 'transactionDebtorRequiredForCredit');
   }
   if (purchaseType !== 'installment_plan' && totalInstallments !== 1) {
-    throw new ApiError(400, 'transactionFortnightOneInstallment');
+    throw new ApiError(400, 'transactionSingleInstallmentRequired');
   }
 
   return {
@@ -142,6 +145,70 @@ function translateForeignKeyError(error: unknown): never {
   }
 
   throw error;
+}
+
+export function parsePaymentInput(input: unknown): PaymentInput {
+  const body = asRecord(input);
+  const creditCardId = parsePositiveId(body.creditCardId);
+
+  if (
+    typeof body.paymentMonth !== 'string'
+    || !/^\d{4}-(0[1-9]|1[0-2])$/.test(body.paymentMonth)
+    || body.paymentMonth.startsWith('0000-')
+  ) {
+    throw new ApiError(400, 'transactionPaymentMonthInvalid');
+  }
+
+  if (!Array.isArray(body.transactionIds) || body.transactionIds.length === 0) {
+    throw new ApiError(400, 'transactionPaymentSelectionRequired');
+  }
+
+  const transactionIds = body.transactionIds.map((id: unknown) => parsePositiveId(id));
+  if (new Set(transactionIds).size !== transactionIds.length) {
+    throw new ApiError(400, 'transactionPaymentSelectionInvalid');
+  }
+
+  return { creditCardId, paymentMonth: `${body.paymentMonth}-01`, transactionIds };
+}
+
+export async function payTransactions(input: unknown): Promise<PaymentResult> {
+  const payment = parsePaymentInput(input);
+
+  try {
+    return await repository.paySelectedTransactions(payment);
+  } catch (error) {
+    if (error instanceof repository.PaymentSelectionError) {
+      throw new ApiError(400, 'transactionPaymentCardMismatch');
+    }
+    if (databaseErrorCode(error) === '23505') {
+      throw new ApiError(409, 'transactionAlreadyPaidForMonth');
+    }
+    throw error;
+  }
+}
+
+export function parsePaymentMonth(input: unknown): string | null {
+  if (input === undefined) return null;
+  if (
+    typeof input !== 'string'
+    || !/^\d{4}-(0[1-9]|1[0-2])$/.test(input)
+    || input.startsWith('0000-')
+  ) {
+    throw new ApiError(400, 'transactionPaymentMonthInvalid');
+  }
+
+  return input;
+}
+
+export async function getPaymentHistory(
+  creditCardIdInput: unknown,
+  paymentMonthInput: unknown,
+): Promise<PaymentHistory> {
+  const creditCardId = parsePositiveId(creditCardIdInput);
+  const paymentMonth = parsePaymentMonth(paymentMonthInput);
+  const history = await repository.findPaymentHistory(creditCardId, paymentMonth);
+  if (!history) throw new ApiError(404, 'creditCardNotFound');
+  return history;
 }
 
 export async function listTransactions(): Promise<Transaction[]> {

@@ -3,6 +3,7 @@ import type { CreditCard } from '../../types/credit-card';
 import type { PurchaseType, TransactionFormValues, TransactionType } from '../../types/transaction';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { DatePickerInput } from '../ui/date-picker-input';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -85,7 +86,7 @@ export function TransactionForm({
               <Select
                 value={form.purchaseType}
                 onValueChange={(value) => {
-                  // Quinzenas fixam uma parcela; parcelamento aceita qualquer quantidade positiva.
+                  // Tipos de quinzena e recorrente fixam uma parcela; parcelamento aceita qualquer quantidade positiva.
                   const purchaseType = value as PurchaseType;
                   const totalInstallments = purchaseType === 'installment_plan'
                     ? (Number.isSafeInteger(Number(form.totalInstallments)) && Number(form.totalInstallments) > 0
@@ -103,6 +104,7 @@ export function TransactionForm({
                 <SelectContent>
                   <SelectItem value="first_fortnight">{t('transactions.purchaseTypes.firstFortnight')}</SelectItem>
                   <SelectItem value="second_fortnight">{t('transactions.purchaseTypes.secondFortnight')}</SelectItem>
+                  <SelectItem value="recurring">{t('transactions.purchaseTypes.recurring')}</SelectItem>
                   <SelectItem value="installment_plan">{t('transactions.purchaseTypes.installmentPlan')}</SelectItem>
                 </SelectContent>
               </Select>
@@ -155,13 +157,12 @@ export function TransactionForm({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="transaction-date">{t('transactions.fields.date')}</Label>
-              <Input
+              <DatePickerInput
                 id="transaction-date"
-                type="date"
                 value={form.date}
-                onChange={(event) => onChange({ ...form, date: event.target.value })}
+                onChange={(date) => onChange({ ...form, date })}
                 disabled={isSaving}
-                required
+                className="w-full justify-start"
               />
             </div>
           </div>
