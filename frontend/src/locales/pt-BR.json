@@ -5,10 +5,12 @@
   },
   "nav": {
     "overview": "Visão geral",
+    "dashboard": "Painel",
     "creditCards": "Cartões",
+    "limits": "Limites",
     "transactions": "Transações",
     "invoices": "Faturas",
-    "groupAccounts": "Contas",
+    "groupFeatures": "Funcionalidades",
     "groupAnalysis": "Análise",
     "groupSettings": "Configuração",
     "budgets": "Orçamentos",
@@ -18,7 +20,8 @@
   },
   "toolbar": {
     "language": "Idioma",
-    "toggleMenu": "Abrir menu"
+    "toggleMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
   },
   "common": {
     "save": "Salvar",
@@ -33,6 +36,26 @@
     "status": "Status",
     "actions": "Ações",
     "error": "Ocorreu um erro. Tente novamente."
+  },
+  "dashboard": {
+    "greetingMorning": "Bom dia",
+    "greetingAfternoon": "Boa tarde",
+    "greetingEvening": "Boa noite",
+    "title": "Dashboards",
+    "total": "Total de transações",
+    "cards": "Total por cartão",
+    "debtors": "Total por devedor",
+    "limits": "Consumo dos limites",
+    "limitProgress": "Consumo do limite de {{name}}",
+    "spent": "Consumido",
+    "remaining": "restantes",
+    "overLimit": "acima do limite",
+    "emptyTransactions": "Ainda não há transações cadastradas.",
+    "emptyCards": "Cadastre um cartão para ver o resumo.",
+    "emptyDebtors": "Nenhum devedor informado.",
+    "emptyLimits": "Cadastre limites para acompanhar o consumo.",
+    "unassignedDebtor": "Rodrigo",
+    "dailySpendAvailable": "Disponível para gastar por dia"
   },
   "creditCards": {
     "title": "Cartões de crédito",
@@ -97,6 +120,26 @@
       "page": "Página",
       "error": "Não foi possível gerar o PDF da fatura."
     }
+  },
+  "purchaseLimits": {
+    "title": "Limites de compras",
+    "listTitle": "Limites de compra",
+    "description": "O progresso considera as compras cadastradas e desconta os créditos do mesmo tipo.",
+    "add": "Novo limite",
+    "edit": "Editar limite",
+    "name": "Tipo de compra",
+    "selectType": "Selecione o tipo de compra",
+    "amount": "Valor do limite",
+    "formDescription": "Defina o valor máximo para este tipo de compra.",
+    "empty": "Ainda não há limites cadastrados.",
+    "progressLabel": "Progresso do limite de {{name}}",
+    "deleteTitle": "Excluir limite",
+    "deleteConfirm": "Deseja realmente excluir o limite de {{name}}?",
+    "validationType": "Selecione um tipo de compra.",
+    "validationAmount": "Informe um valor maior que zero, com no máximo duas casas decimais.",
+    "created": "Limite criado com sucesso.",
+    "updated": "Limite atualizado com sucesso.",
+    "deleted": "Limite excluído com sucesso."
   },
   "transactions": {
     "title": "Transações de cartão",

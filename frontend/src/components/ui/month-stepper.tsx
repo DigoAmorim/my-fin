@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { MonthPicker } from './ui/month-picker';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { resolveDateLocales } from '../lib/date-locales';
+import { MonthPicker } from './month-picker';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { resolveDateLocales } from '../../lib/date-locales';
 
 type MonthStepperProps = {
   value: string;

@@ -1,33 +1,33 @@
 import cors from 'cors';
 import express from 'express';
+import { env } from './config/env';
 import { ApiError, apiErrorMiddleware } from './lib/api-errors';
 import { creditCardRouter } from './modules/credit-card/credit-card-routes';
+import { purchaseLimitRouter } from './modules/purchase-limit/purchase-limit-routes';
 import { transactionRouter } from './modules/transaction/transaction-routes';
 import { healthRouter } from './routes/health';
 
 export const app = express();
 
-const allowedOrigins = (process.env.WEB_ORIGIN ?? 'http://localhost:5173')
-	.split(',')
-	.map((origin) => origin.trim())
-	.filter(Boolean);
-
 app.use(
-	cors({
-		origin: (origin, callback) => {
-			if (!origin || allowedOrigins.includes(origin)) {
-				callback(null, true);
-				return;
-			}
+  cors({
+    origin: (origin, callback) => {
+      // Non-browser clients may omit Origin; browser requests must match configured origins.
+      if (!origin || env.webOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
 
-			callback(new ApiError(403, 'originNotAllowed'));
-		},
-	}),
+      callback(new ApiError(403, 'originNotAllowed'));
+    },
+  }),
 );
-app.use(express.json());
+// Keep the parser's resource limit explicit to prevent oversized request bodies.
+app.use(express.json({ limit: '100kb' }));
 app.use('/api/health', healthRouter);
 // Todas as rotas do modulo de cartao compartilham este prefixo.
 app.use('/api/credit-cards', creditCardRouter);
+app.use('/api/purchase-limits', purchaseLimitRouter);
 // Todas as rotas de compras/transacoes compartilham este prefixo.
 app.use('/api/transactions', transactionRouter);
 app.use(apiErrorMiddleware);

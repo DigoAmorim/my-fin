@@ -1,5 +1,6 @@
 import autoTable from 'jspdf-autotable';
 import { jsPDF } from 'jspdf';
+import { createCurrencyFormatter } from './utils';
 import type { PaidTransaction } from './transaction-api';
 
 export type InvoicePdfLabels = {
@@ -38,15 +39,6 @@ function transactionNetAmount(transaction: PaidTransaction): number {
   return amount;
 }
 
-function currencyFormatter(locale: string): Intl.NumberFormat {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
 function displayMonth(month: string, locale: string): string {
   const [year, monthNumber] = month.split('-').map(Number);
   return new Date(year, monthNumber - 1, 1).toLocaleDateString(locale, {
@@ -69,7 +61,7 @@ export function downloadInvoicePdf({ cardName, month, locale, transactions, labe
   const pageWidth = document.internal.pageSize.getWidth();
   const pageHeight = document.internal.pageSize.getHeight();
   const margin = 15;
-  const currency = currencyFormatter(locale);
+  const currency = createCurrencyFormatter(locale);
   const groups = new Map<string, PaidTransaction[]>();
 
   // Empty string is a deliberate group key so transactions without a debtor remain selectable and printable together.

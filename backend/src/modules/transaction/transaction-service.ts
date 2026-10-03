@@ -1,4 +1,5 @@
 import { ApiError } from '../../lib/api-errors';
+import { numberToDecimalString } from '../../lib/decimal';
 import { asRecord, databaseErrorCode, parsePositiveId } from '../../lib/request-validation';
 import * as repository from './transaction-repository';
 import {
@@ -40,21 +41,6 @@ function parseInstallmentAmount(input: unknown): string {
   }
 
   return `${whole}.${cents}`;
-}
-
-function numberToDecimalString(value: number): string {
-  const text = String(value);
-  if (!/[eE]/.test(text)) return text;
-
-  const [coefficient, exponentText] = text.toLowerCase().split('e');
-  const exponent = Number(exponentText);
-  const [whole, fraction = ''] = coefficient.split('.');
-  const digits = whole + fraction;
-  const decimalPosition = whole.length + exponent;
-
-  if (decimalPosition <= 0) return `0.${'0'.repeat(-decimalPosition)}${digits}`;
-  if (decimalPosition >= digits.length) return `${digits}${'0'.repeat(decimalPosition - digits.length)}`;
-  return `${digits.slice(0, decimalPosition)}.${digits.slice(decimalPosition)}`;
 }
 
 function parseOptionalText(input: unknown, field: 'debtor' | 'description'): string | null {

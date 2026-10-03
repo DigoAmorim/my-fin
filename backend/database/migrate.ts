@@ -1,19 +1,11 @@
 import path from 'node:path';
-import dotenv from 'dotenv';
+import { env } from '../src/config/env';
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-
-async function migrate() {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is not set. Configure it in the project root .env file.');
-  }
-
+async function migrate(): Promise<void> {
   const { runner } = await import('node-pg-migrate');
 
   await runner({
-    databaseUrl,
+    databaseUrl: env.databaseUrl,
     dir: path.resolve(__dirname, 'migrations'),
     direction: 'up',
     migrationsTable: 'pgmigrations',

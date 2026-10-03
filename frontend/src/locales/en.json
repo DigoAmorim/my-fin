@@ -5,10 +5,12 @@
   },
   "nav": {
     "overview": "Overview",
+    "dashboard": "Dashboard",
     "creditCards": "Cards",
+    "limits": "Limits",
     "transactions": "Transactions",
     "invoices": "Invoices",
-    "groupAccounts": "Accounts",
+    "groupFeatures": "Features",
     "groupAnalysis": "Analysis",
     "groupSettings": "Settings",
     "budgets": "Budgets",
@@ -18,7 +20,8 @@
   },
   "toolbar": {
     "language": "Language",
-    "toggleMenu": "Toggle menu"
+    "toggleMenu": "Toggle menu",
+    "closeMenu": "Close menu"
   },
   "common": {
     "save": "Save",
@@ -33,6 +36,26 @@
     "status": "Status",
     "actions": "Actions",
     "error": "Something went wrong. Please try again."
+  },
+  "dashboard": {
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "title": "Dashboard",
+    "total": "Total transactions",
+    "cards": "Totals by card",
+    "debtors": "Totals by debtor",
+    "limits": "Limit usage",
+    "limitProgress": "{{name}} limit usage",
+    "spent": "Used",
+    "remaining": "remaining",
+    "overLimit": "over limit",
+    "emptyTransactions": "There are no transactions yet.",
+    "emptyCards": "Add a card to see the summary.",
+    "emptyDebtors": "No debtors provided.",
+    "emptyLimits": "Add limits to track usage.",
+    "unassignedDebtor": "Rodrigo",
+    "dailySpendAvailable": "Available to spend per day"
   },
   "creditCards": {
     "title": "Credit cards",
@@ -97,6 +120,26 @@
       "page": "Page",
       "error": "Could not generate the invoice PDF."
     }
+  },
+  "purchaseLimits": {
+    "title": "Purchase limits",
+    "listTitle": "Limits by purchase type",
+    "description": "Progress is based on registered transactions, subtracting credits of the same type.",
+    "add": "New limit",
+    "edit": "Edit limit",
+    "name": "Purchase type",
+    "selectType": "Select a purchase type",
+    "amount": "Limit amount",
+    "formDescription": "Set the maximum amount for this purchase type.",
+    "empty": "There are no limits yet.",
+    "progressLabel": "{{name}} limit progress",
+    "deleteTitle": "Delete limit",
+    "deleteConfirm": "Are you sure you want to delete the {{name}} limit?",
+    "validationType": "Select a purchase type.",
+    "validationAmount": "Enter an amount greater than zero with no more than two decimal places.",
+    "created": "Limit created successfully.",
+    "updated": "Limit updated successfully.",
+    "deleted": "Limit deleted successfully."
   },
   "transactions": {
     "title": "Card transactions",

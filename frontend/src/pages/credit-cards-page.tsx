@@ -29,7 +29,6 @@ type CreditCardsPageProps = {
 export function CreditCardsPage({ onNavigate }: CreditCardsPageProps) {
   const { t } = useTranslation();
   // A página mantém os dados e controla os diálogos; os componentes filhos recebem estado e callbacks.
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [deletingCard, setDeletingCard] = useState<CreditCard | null>(null);
   const [form, setForm] = useState<CreditCardFormType>(emptyForm);
@@ -148,8 +147,6 @@ export function CreditCardsPage({ onNavigate }: CreditCardsPageProps) {
     <AppLayout
       currentPage="creditCards"
       onNavigate={onNavigate}
-      sidebarOpen={sidebarOpen}
-      onToggleSidebar={() => setSidebarOpen((current) => !current)}
     >
       <PageContainer>
         <PageHeader

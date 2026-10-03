@@ -2,11 +2,17 @@ import { lazy, Suspense, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppPage } from './components/layout/app-layout';
 
+const DashboardPage = lazy(() =>
+  import('./pages/dashboard-page').then(({ DashboardPage }) => ({ default: DashboardPage })),
+);
 const CreditCardsPage = lazy(() =>
   import('./pages/credit-cards-page').then(({ CreditCardsPage }) => ({ default: CreditCardsPage })),
 );
 const InvoicesPage = lazy(() =>
   import('./pages/invoices-page').then(({ InvoicesPage }) => ({ default: InvoicesPage })),
+);
+const PurchaseLimitsPage = lazy(() =>
+  import('./pages/purchase-limits-page').then(({ PurchaseLimitsPage }) => ({ default: PurchaseLimitsPage })),
 );
 const TransactionsPage = lazy(() =>
   import('./pages/transactions-page').then(({ TransactionsPage }) => ({ default: TransactionsPage })),
@@ -25,18 +31,27 @@ function PageLoading() {
   );
 }
 
+function renderPage(page: AppPage, onNavigate: (nextPage: AppPage) => void) {
+  switch (page) {
+    case 'dashboard':
+      return <DashboardPage onNavigate={onNavigate} />;
+    case 'transactions':
+      return <TransactionsPage onNavigate={onNavigate} />;
+    case 'invoices':
+      return <InvoicesPage onNavigate={onNavigate} />;
+    case 'limits':
+      return <PurchaseLimitsPage onNavigate={onNavigate} />;
+    case 'creditCards':
+      return <CreditCardsPage onNavigate={onNavigate} />;
+  }
+}
+
 function App() {
-  const [activePage, setActivePage] = useState<AppPage>('transactions');
+  const [activePage, setActivePage] = useState<AppPage>('dashboard');
 
   return (
     <Suspense fallback={<PageLoading />}>
-      {activePage === 'transactions' ? (
-        <TransactionsPage onNavigate={setActivePage} />
-      ) : activePage === 'invoices' ? (
-        <InvoicesPage onNavigate={setActivePage} />
-      ) : (
-        <CreditCardsPage onNavigate={setActivePage} />
-      )}
+      {renderPage(activePage, setActivePage)}
     </Suspense>
   );
 }

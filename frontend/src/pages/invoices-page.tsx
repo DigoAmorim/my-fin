@@ -2,7 +2,7 @@ import { ArrowLeft, ChevronRight, Printer, RotateCcw, Search, X } from 'lucide-r
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { MonthStepper } from '../components/month-stepper';
+import { MonthStepper } from '../components/ui/month-stepper';
 import { AppLayout, type AppPage } from '../components/layout/app-layout';
 import { ContentSection } from '../components/layout/content-section';
 import { PageContainer } from '../components/layout/page-container';
@@ -22,6 +22,7 @@ import { getPaymentHistory } from '../lib/transaction-api';
 import { listCreditCards } from '../lib/credit-card-api';
 import { resolveDateLocales } from '../lib/date-locales';
 import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../lib/transaction-labels';
+import { createCurrencyFormatter } from '../lib/utils';
 import type { CreditCard } from '../types/credit-card';
 import type { PurchaseType, TransactionType } from '../types/transaction';
 import type { PaidTransaction, PaymentHistory } from '../lib/transaction-api';
@@ -39,7 +40,6 @@ function currentYearMonth(): string {
 
 export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
   const { t, i18n } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [cardsLoading, setCardsLoading] = useState(true);
   const [cardsError, setCardsError] = useState('');
@@ -164,12 +164,7 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
   const hasFilters = !!search || !!typeFilter || !!purchaseFilter || !!debtorFilter;
 
   const amountFormatter = useMemo(
-    () => new Intl.NumberFormat(intlLocale, {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }),
+    () => createCurrencyFormatter(intlLocale),
     [intlLocale],
   );
 
@@ -254,8 +249,6 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
     <AppLayout
       currentPage="invoices"
       onNavigate={onNavigate}
-      sidebarOpen={sidebarOpen}
-      onToggleSidebar={() => setSidebarOpen((current) => !current)}
     >
       <PageContainer>
         <PageHeader

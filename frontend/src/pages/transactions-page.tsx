@@ -9,7 +9,7 @@ import { ContentSection } from '../components/layout/content-section';
 import { PageContainer } from '../components/layout/page-container';
 import { PageHeader } from '../components/layout/page-header';
 import { Button } from '../components/ui/button';
-import { MonthStepper } from '../components/month-stepper';
+import { MonthStepper } from '../components/ui/month-stepper';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import {
   Dialog,
@@ -21,6 +21,7 @@ import {
 } from '../components/ui/dialog';
 import { createTransaction, deleteTransaction, listTransactions, payTransactions, updateTransaction } from '../lib/transaction-api';
 import { listCreditCards } from '../lib/credit-card-api';
+import { createCurrencyFormatter } from '../lib/utils';
 import type { CreditCard } from '../types/credit-card';
 import type { PurchaseType, Transaction, TransactionFormValues, TransactionInput, TransactionType } from '../types/transaction';
 
@@ -68,7 +69,6 @@ function toFormValues(transaction: Transaction): TransactionFormValues {
 
 export function TransactionsPage({ onNavigate }: TransactionsPageProps) {
   const { t, i18n } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<Set<number>>(() => new Set());
@@ -133,12 +133,7 @@ export function TransactionsPage({ onNavigate }: TransactionsPageProps) {
 
   const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
   const amountFormatter = useMemo(
-    () => new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }),
+    () => createCurrencyFormatter(locale),
     [locale],
   );
   const summaryTotals = useMemo(() => {
@@ -351,8 +346,6 @@ export function TransactionsPage({ onNavigate }: TransactionsPageProps) {
     <AppLayout
       currentPage="transactions"
       onNavigate={onNavigate}
-      sidebarOpen={sidebarOpen}
-      onToggleSidebar={() => setSidebarOpen((current) => !current)}
     >
       <PageContainer>
         <PageHeader
