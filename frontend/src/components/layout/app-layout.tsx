@@ -1,11 +1,11 @@
-import { CreditCard, Gauge, Languages, Landmark, LayoutDashboard, Menu, Receipt, ReceiptText } from 'lucide-react';
+import { CreditCard, Gauge, Globe, Languages, LayoutDashboard, Menu, Receipt, ReceiptText } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 
 /** Destinos disponíveis na navegação principal da aplicação. */
-export type AppPage = 'dashboard' | 'accounts' | 'creditCards' | 'limits' | 'transactions' | 'invoices';
+export type AppPage = 'dashboard' | 'creditCards' | 'limits' | 'openFinance' | 'transactions' | 'invoices';
 
 function navItemClass(isActive: boolean): string {
   return cn(
@@ -98,15 +98,6 @@ export function AppLayout({ children, currentPage, onNavigate }: AppLayoutProps)
               <Receipt size={17} />
               <span>{t('nav.invoices')}</span>
             </button>
-            <button
-              type="button"
-              aria-current={currentPage === 'accounts' ? 'page' : undefined}
-              onClick={() => navigateTo('accounts')}
-              className={navItemClass(currentPage === 'accounts')}
-            >
-              <Landmark size={17} />
-              <span>{t('nav.accounts')}</span>
-            </button>
           </div>
           <div className="flex flex-col gap-0.5">
             <span className="px-[0.65rem] py-[0.3rem] text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">{t('nav.groupSettings')}</span>
@@ -126,6 +117,15 @@ export function AppLayout({ children, currentPage, onNavigate }: AppLayoutProps)
             >
               <Gauge size={17} />
               <span>{t('nav.limits')}</span>
+            </button>
+            <button
+              type="button"
+              aria-current={currentPage === 'openFinance' ? 'page' : undefined}
+              onClick={() => navigateTo('openFinance')}
+              className={navItemClass(currentPage === 'openFinance')}
+            >
+              <Globe size={17} />
+              <span>{t('nav.openFinance')}</span>
             </button>
           </div>
         </nav>

@@ -6,9 +6,9 @@
   "nav": {
     "overview": "Visão geral",
     "dashboard": "Painel",
-    "accounts": "Contas",
     "creditCards": "Cartões",
     "limits": "Limites",
+    "openFinance": "Open Finance",
     "transactions": "Transações",
     "invoices": "Faturas",
     "groupFeatures": "Funcionalidades",
@@ -82,41 +82,6 @@
     "successUpdate": "Cartão atualizado com sucesso.",
     "successDelete": "Cartão removido com sucesso."
   },
-  "accounts": {
-    "title": "Contas",
-    "listTitle": "Contas cadastradas",
-    "new": "Nova conta",
-    "refresh": "Atualizar contas",
-    "refreshing": "Atualizando...",
-    "refreshSummary": "Atualização concluída: {{updatedCount}} atualizada(s), {{skippedCount}} ignorada(s), {{failedCount}} com erro.",
-    "refreshNoApplicableAccounts": "Nenhuma conta BMG ou Banco do Brasil com item ID Pluggy foi encontrada. {{skipped}} conta(s) ignorada(s).",
-    "refreshFailedAccounts": "Falha ao atualizar: {{accounts}}.",
-    "edit": "Editar conta",
-    "empty": "Ainda não há contas cadastradas.",
-    "deleteConfirm": "Deseja realmente excluir a conta {{name}}?",
-    "successCreate": "Conta criada com sucesso.",
-    "successUpdate": "Conta atualizada com sucesso.",
-    "successDelete": "Conta removida com sucesso.",
-    "integrationActive": "Ativo",
-    "integrationInactive": "Inativo",
-    "lastBalanceUpdate": "Saldo atualizado em {{date}}",
-    "table": {
-      "name": "Conta",
-      "currentBalance": "Saldo atual",
-      "openFinance": "Open Finance",
-      "lastUpdate": "Última atualização"
-    },
-    "form": {
-      "name": "Nome da conta",
-      "namePlaceholder": "Ex.: Conta principal",
-      "bankName": "Nome do banco",
-      "bankPlaceholder": "Ex.: Banco do Brasil",
-      "pluggyItemId": "Item ID Pluggy",
-      "pluggyItemIdPlaceholder": "Opcional",
-      "pluggyHelp": "O ID será armazenado para integração futura. A sincronização ainda não está ativa.",
-      "currentBalance": "Saldo atual"
-    }
-  },
   "invoices": {
     "title": "Faturas",
     "cardsTitle": "Cartões cadastrados",
@@ -176,6 +141,30 @@
     "created": "Limite criado com sucesso.",
     "updated": "Limite atualizado com sucesso.",
     "deleted": "Limite excluído com sucesso."
+  },
+  "openFinance": {
+    "title": "Open Finance",
+    "listTitle": "Bancos cadastrados",
+    "description": "Gerencie os bancos e os tipos de dados que deseja sincronizar.",
+    "empty": "Ainda não há bancos cadastrados para sincronização.",
+    "add": "Adicionar banco",
+    "edit": "Editar banco",
+    "deleteTitle": "Excluir banco",
+    "deleteConfirm": "Deseja realmente excluir {{name}} da configuração do Open Finance?",
+    "formDescription": "Informe o banco, os tipos de dados e o Item ID da Pluggy.",
+    "bankName": "Nome do banco",
+    "pluggyItemId": "Item ID Pluggy",
+    "accountTypes": "Tipos de dados para sincronizar",
+    "options": {
+      "checkingAccount": "Conta Corrente",
+      "savingsAccount": "Conta Poupança",
+      "fixedIncome": "Renda Fixa",
+      "variableIncome": "Renda Variável"
+    },
+    "validationOptionRequired": "Selecione pelo menos um tipo de dado para sincronizar.",
+    "created": "Banco adicionado com sucesso.",
+    "updated": "Banco atualizado com sucesso.",
+    "deleted": "Banco removido com sucesso."
   },
   "transactions": {
     "title": "Transações de cartão",

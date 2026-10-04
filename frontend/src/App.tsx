@@ -8,14 +8,14 @@ const DashboardPage = lazy(() =>
 const CreditCardsPage = lazy(() =>
   import('./pages/credit-cards-page').then(({ CreditCardsPage }) => ({ default: CreditCardsPage })),
 );
-const AccountsPage = lazy(() =>
-  import('./pages/accounts-page').then(({ AccountsPage }) => ({ default: AccountsPage })),
-);
 const InvoicesPage = lazy(() =>
   import('./pages/invoices-page').then(({ InvoicesPage }) => ({ default: InvoicesPage })),
 );
 const PurchaseLimitsPage = lazy(() =>
   import('./pages/purchase-limits-page').then(({ PurchaseLimitsPage }) => ({ default: PurchaseLimitsPage })),
+);
+const OpenFinancePage = lazy(() =>
+  import('./pages/open-finance-page').then(({ OpenFinancePage }) => ({ default: OpenFinancePage })),
 );
 const TransactionsPage = lazy(() =>
   import('./pages/transactions-page').then(({ TransactionsPage }) => ({ default: TransactionsPage })),
@@ -42,10 +42,10 @@ function renderPage(page: AppPage, onNavigate: (nextPage: AppPage) => void) {
       return <TransactionsPage onNavigate={onNavigate} />;
     case 'invoices':
       return <InvoicesPage onNavigate={onNavigate} />;
-    case 'accounts':
-      return <AccountsPage onNavigate={onNavigate} />;
     case 'limits':
       return <PurchaseLimitsPage onNavigate={onNavigate} />;
+    case 'openFinance':
+      return <OpenFinancePage onNavigate={onNavigate} />;
     case 'creditCards':
       return <CreditCardsPage onNavigate={onNavigate} />;
   }

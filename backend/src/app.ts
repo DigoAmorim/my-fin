@@ -2,8 +2,8 @@ import cors from 'cors';
 import express from 'express';
 import { env } from './config/env';
 import { ApiError, apiErrorMiddleware } from './lib/api-errors';
-import { accountRouter } from './modules/account/account-routes';
 import { creditCardRouter } from './modules/credit-card/credit-card-routes';
+import { openFinanceRouter } from './modules/open-finance/open-finance-routes';
 import { purchaseLimitRouter } from './modules/purchase-limit/purchase-limit-routes';
 import { transactionRouter } from './modules/transaction/transaction-routes';
 import { healthRouter } from './routes/health';
@@ -26,9 +26,9 @@ app.use(
 // Keep the parser's resource limit explicit to prevent oversized request bodies.
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/health', healthRouter);
-app.use('/api/accounts', accountRouter);
 // Todas as rotas do modulo de cartao compartilham este prefixo.
 app.use('/api/credit-cards', creditCardRouter);
+app.use('/api/open-finance', openFinanceRouter);
 app.use('/api/purchase-limits', purchaseLimitRouter);
 // Todas as rotas de compras/transacoes compartilham este prefixo.
 app.use('/api/transactions', transactionRouter);

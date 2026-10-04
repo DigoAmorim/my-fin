@@ -6,9 +6,9 @@
   "nav": {
     "overview": "Overview",
     "dashboard": "Dashboard",
-    "accounts": "Accounts",
     "creditCards": "Cards",
     "limits": "Limits",
+    "openFinance": "Open Finance",
     "transactions": "Transactions",
     "invoices": "I nvoices",
     "groupFeatures": "Features",
@@ -82,41 +82,6 @@
     "successUpdate": "Card updated successfully.",
     "successDelete": "Card removed successfully."
   },
-  "accounts": {
-    "title": "Accounts",
-    "listTitle": "Registered accounts",
-    "new": "New account",
-    "refresh": "Refresh accounts",
-    "refreshing": "Refreshing...",
-    "refreshSummary": "Refresh complete: {{updatedCount}} updated, {{skippedCount}} skipped, {{failedCount}} failed.",
-    "refreshNoApplicableAccounts": "No BMG or Banco do Brasil account with a Pluggy item ID was found. {{skipped}} account(s) skipped.",
-    "refreshFailedAccounts": "Failed to refresh: {{accounts}}.",
-    "edit": "Edit account",
-    "empty": "There are no registered accounts yet.",
-    "deleteConfirm": "Are you sure you want to delete the account {{name}}?",
-    "successCreate": "Account created successfully.",
-    "successUpdate": "Account updated successfully.",
-    "successDelete": "Account removed successfully.",
-    "integrationActive": "Active",
-    "integrationInactive": "Inactive",
-    "lastBalanceUpdate": "Balance updated {{date}}",
-    "table": {
-      "name": "Account",
-      "currentBalance": "Current balance",
-      "openFinance": "Open Finance",
-      "lastUpdate": "Last updated"
-    },
-    "form": {
-      "name": "Account name",
-      "namePlaceholder": "e.g. Main account",
-      "bankName": "Bank name",
-      "bankPlaceholder": "e.g. Bank of America",
-      "pluggyItemId": "Pluggy item ID",
-      "pluggyItemIdPlaceholder": "Optional",
-      "pluggyHelp": "The ID will be stored for future integration. Synchronization is not active yet.",
-      "currentBalance": "Current balance"
-    }
-  },
   "invoices": {
     "title": "Invoices",
     "cardsTitle": "Registered cards",
@@ -176,6 +141,30 @@
     "created": "Limit created successfully.",
     "updated": "Limit updated successfully.",
     "deleted": "Limit deleted successfully."
+  },
+  "openFinance": {
+    "title": "Open Finance",
+    "listTitle": "Registered banks",
+    "description": "Manage the banks and data types you want to synchronize.",
+    "empty": "There are no banks registered for synchronization yet.",
+    "add": "Add bank",
+    "edit": "Edit bank",
+    "deleteTitle": "Delete bank",
+    "deleteConfirm": "Are you sure you want to remove {{name}} from Open Finance settings?",
+    "formDescription": "Enter the bank, data types, and Pluggy item ID.",
+    "bankName": "Bank name",
+    "pluggyItemId": "Pluggy item ID",
+    "accountTypes": "Data types to synchronize",
+    "options": {
+      "checkingAccount": "Checking account",
+      "savingsAccount": "Savings account",
+      "fixedIncome": "Fixed income",
+      "variableIncome": "Variable income"
+    },
+    "validationOptionRequired": "Select at least one data type to synchronize.",
+    "created": "Bank added successfully.",
+    "updated": "Bank updated successfully.",
+    "deleted": "Bank removed successfully."
   },
   "transactions": {
     "title": "Card transactions",

@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/server.js",
     "db:migrate": "tsx database/migrate.ts",
-    "test": "tsx --test src/lib/pluggy-client.test.ts src/modules/account/account-service.test.ts src/modules/transaction/transaction-service.test.ts src/modules/purchase-limit/purchase-limit-service.test.ts",
+    "test": "tsx --test src/modules/transaction/transaction-service.test.ts src/modules/purchase-limit/purchase-limit-service.test.ts src/modules/open-finance/open-finance-service.test.ts",
     "lint": "oxlint src database"
   },
   "dependencies": {
