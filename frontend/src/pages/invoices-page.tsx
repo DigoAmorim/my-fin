@@ -23,15 +23,18 @@ import { listCreditCards } from '../lib/credit-card-api';
 import { resolveDateLocales } from '../lib/date-locales';
 import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../lib/transaction-labels';
 import { createCurrencyFormatter } from '../lib/utils';
+import { sortRows, type SortDirection } from '../lib/table-sorting';
 import type { CreditCard } from '../types/credit-card';
 import type { PurchaseType, TransactionType } from '../types/transaction';
 import type { PaidTransaction, PaymentHistory } from '../lib/transaction-api';
+import { SortableTableHead } from '../components/ui/sortable-table-head';
 
 type InvoicesPageProps = {
   onNavigate: (page: AppPage) => void;
 };
 
 const EMPTY_TRANSACTIONS: PaidTransaction[] = [];
+type InvoiceSortColumn = 'card' | 'purchase' | 'type' | 'debtor' | 'date' | 'installments' | 'description' | 'amount';
 
 function currentYearMonth(): string {
   const now = new Date();
@@ -54,6 +57,9 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
   const [typeFilter, setTypeFilter] = useState<TransactionType | ''>('');
   const [purchaseFilter, setPurchaseFilter] = useState<PurchaseType | ''>('');
   const [debtorFilter, setDebtorFilter] = useState('');
+  const [cardSortDirection, setCardSortDirection] = useState<SortDirection>('asc');
+  const [invoiceSortBy, setInvoiceSortBy] = useState<InvoiceSortColumn>('date');
+  const [invoiceSortDirection, setInvoiceSortDirection] = useState<SortDirection>('desc');
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [selectedPrintDebtors, setSelectedPrintDebtors] = useState<string[]>([]);
   const loadedHistoryRef = useRef<{ cardId: number; month: string } | null>(null);
@@ -126,6 +132,37 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
         && (!debtorFilter || transaction.debtor === debtorFilter);
     });
   }, [transactions, search, typeFilter, purchaseFilter, debtorFilter, intlLocale]);
+  const sortedCards = useMemo(
+    () => sortRows(cards, (card) => card.name, cardSortDirection, intlLocale),
+    [cards, cardSortDirection, intlLocale],
+  );
+  const sortedTransactions = useMemo(() => sortRows(
+    filteredTransactions,
+    (transaction) => {
+      switch (invoiceSortBy) {
+        case 'card':
+          return selectedCard?.name ?? t('transactions.unknownCard');
+        case 'purchase':
+          return t(purchaseTypeLabelKeys[transaction.purchaseType]);
+        case 'type':
+          return t(transactionTypeLabelKeys[transaction.transactionType]);
+        case 'debtor':
+          return transaction.debtor || null;
+        case 'date':
+          return transaction.date;
+        case 'installments':
+          return transaction.totalInstallments * 100 + transaction.currentInstallment;
+        case 'description':
+          return transaction.description || t('transactions.noDescription');
+        case 'amount': {
+          const amount = Math.abs(Number(transaction.installmentAmount));
+          return transaction.transactionType === 'credit' ? -amount : amount;
+        }
+      }
+    },
+    invoiceSortDirection,
+    intlLocale,
+  ), [filteredTransactions, invoiceSortBy, invoiceSortDirection, intlLocale, selectedCard, t]);
   const pdfDebtors = useMemo(
     () => Array.from(new Set(filteredTransactions.map((transaction) => transaction.debtor?.trim() ?? '')))
       .sort((left, right) => {
@@ -167,6 +204,19 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
     () => createCurrencyFormatter(intlLocale),
     [intlLocale],
   );
+
+  function toggleInvoiceSort(column: InvoiceSortColumn) {
+    if (invoiceSortBy === column) {
+      setInvoiceSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
+    } else {
+      setInvoiceSortBy(column);
+      setInvoiceSortDirection('asc');
+    }
+  }
+
+  function toggleCardSort() {
+    setCardSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
+  }
 
   function openCard(card: CreditCard) {
     loadedHistoryRef.current = null;
@@ -286,12 +336,14 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('invoices.card')}</TableHead>
+                    <SortableTableHead direction={cardSortDirection} onSort={toggleCardSort}>
+                      {t('invoices.card')}
+                    </SortableTableHead>
                     <TableHead className="w-12" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {cards.map((card) => (
+                {sortedCards.map((card) => (
                     <TableRow
                       key={card.id}
                       className="transition-colors hover:bg-muted/50"
@@ -491,18 +543,34 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t('transactions.fields.card')}</TableHead>
-                        <TableHead>{t('transactions.fields.purchase')}</TableHead>
-                        <TableHead>{t('transactions.fields.type')}</TableHead>
-                        <TableHead>{t('transactions.fields.debtor')}</TableHead>
-                        <TableHead>{t('transactions.fields.date')}</TableHead>
-                        <TableHead className="text-right">{t('transactions.fields.installments')}</TableHead>
-                        <TableHead>{t('transactions.fields.description')}</TableHead>
-                        <TableHead className="text-right">{t('transactions.fields.amount')}</TableHead>
+                        <SortableTableHead direction={invoiceSortBy === 'card' ? invoiceSortDirection : null} onSort={() => toggleInvoiceSort('card')}>
+                          {t('transactions.fields.card')}
+                        </SortableTableHead>
+                        <SortableTableHead direction={invoiceSortBy === 'purchase' ? invoiceSortDirection : null} onSort={() => toggleInvoiceSort('purchase')}>
+                          {t('transactions.fields.purchase')}
+                        </SortableTableHead>
+                        <SortableTableHead direction={invoiceSortBy === 'type' ? invoiceSortDirection : null} onSort={() => toggleInvoiceSort('type')}>
+                          {t('transactions.fields.type')}
+                        </SortableTableHead>
+                        <SortableTableHead direction={invoiceSortBy === 'debtor' ? invoiceSortDirection : null} onSort={() => toggleInvoiceSort('debtor')}>
+                          {t('transactions.fields.debtor')}
+                        </SortableTableHead>
+                        <SortableTableHead direction={invoiceSortBy === 'date' ? invoiceSortDirection : null} onSort={() => toggleInvoiceSort('date')}>
+                          {t('transactions.fields.date')}
+                        </SortableTableHead>
+                        <SortableTableHead className="text-right" align="right" direction={invoiceSortBy === 'installments' ? invoiceSortDirection : null} onSort={() => toggleInvoiceSort('installments')}>
+                          {t('transactions.fields.installments')}
+                        </SortableTableHead>
+                        <SortableTableHead direction={invoiceSortBy === 'description' ? invoiceSortDirection : null} onSort={() => toggleInvoiceSort('description')}>
+                          {t('transactions.fields.description')}
+                        </SortableTableHead>
+                        <SortableTableHead className="text-right" align="right" direction={invoiceSortBy === 'amount' ? invoiceSortDirection : null} onSort={() => toggleInvoiceSort('amount')}>
+                          {t('transactions.fields.amount')}
+                        </SortableTableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredTransactions.map((transaction) => renderPaidTransaction(
+                      {sortedTransactions.map((transaction) => renderPaidTransaction(
                         transaction,
                         selectedCard,
                         intlLocale,

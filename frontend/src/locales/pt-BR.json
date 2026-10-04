@@ -6,6 +6,7 @@
   "nav": {
     "overview": "Visão geral",
     "dashboard": "Painel",
+    "accounts": "Contas",
     "creditCards": "Cartões",
     "limits": "Limites",
     "transactions": "Transações",
@@ -80,6 +81,41 @@
     "successCreate": "Cartão criado com sucesso.",
     "successUpdate": "Cartão atualizado com sucesso.",
     "successDelete": "Cartão removido com sucesso."
+  },
+  "accounts": {
+    "title": "Contas",
+    "listTitle": "Contas cadastradas",
+    "new": "Nova conta",
+    "refresh": "Atualizar contas",
+    "refreshing": "Atualizando...",
+    "refreshSummary": "Atualização concluída: {{updatedCount}} atualizada(s), {{skippedCount}} ignorada(s), {{failedCount}} com erro.",
+    "refreshNoApplicableAccounts": "Nenhuma conta BMG ou Banco do Brasil com item ID Pluggy foi encontrada. {{skipped}} conta(s) ignorada(s).",
+    "refreshFailedAccounts": "Falha ao atualizar: {{accounts}}.",
+    "edit": "Editar conta",
+    "empty": "Ainda não há contas cadastradas.",
+    "deleteConfirm": "Deseja realmente excluir a conta {{name}}?",
+    "successCreate": "Conta criada com sucesso.",
+    "successUpdate": "Conta atualizada com sucesso.",
+    "successDelete": "Conta removida com sucesso.",
+    "integrationActive": "Ativo",
+    "integrationInactive": "Inativo",
+    "lastBalanceUpdate": "Saldo atualizado em {{date}}",
+    "table": {
+      "name": "Conta",
+      "currentBalance": "Saldo atual",
+      "openFinance": "Open Finance",
+      "lastUpdate": "Última atualização"
+    },
+    "form": {
+      "name": "Nome da conta",
+      "namePlaceholder": "Ex.: Conta principal",
+      "bankName": "Nome do banco",
+      "bankPlaceholder": "Ex.: Banco do Brasil",
+      "pluggyItemId": "Item ID Pluggy",
+      "pluggyItemIdPlaceholder": "Opcional",
+      "pluggyHelp": "O ID será armazenado para integração futura. A sincronização ainda não está ativa.",
+      "currentBalance": "Saldo atual"
+    }
   },
   "invoices": {
     "title": "Faturas",

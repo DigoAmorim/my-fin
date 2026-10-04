@@ -49,4 +49,10 @@ function parseWebOrigins(value: string): string[] {
 
 const webOrigins = parseWebOrigins(process.env.WEB_ORIGIN ?? 'http://localhost:5173');
 
-export const env = { databaseUrl, port, webOrigins };
+export const env = {
+  databaseUrl,
+  port,
+  webOrigins,
+  pluggyClientId: process.env.PLUGGY_CLIENT_ID?.trim(),
+  pluggyClientSecret: process.env.PLUGGY_CLIENT_SECRET?.trim(),
+};

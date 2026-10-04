@@ -6,6 +6,7 @@
   "nav": {
     "overview": "Overview",
     "dashboard": "Dashboard",
+    "accounts": "Accounts",
     "creditCards": "Cards",
     "limits": "Limits",
     "transactions": "Transactions",
@@ -80,6 +81,41 @@
     "successCreate": "Card created successfully.",
     "successUpdate": "Card updated successfully.",
     "successDelete": "Card removed successfully."
+  },
+  "accounts": {
+    "title": "Accounts",
+    "listTitle": "Registered accounts",
+    "new": "New account",
+    "refresh": "Refresh accounts",
+    "refreshing": "Refreshing...",
+    "refreshSummary": "Refresh complete: {{updatedCount}} updated, {{skippedCount}} skipped, {{failedCount}} failed.",
+    "refreshNoApplicableAccounts": "No BMG or Banco do Brasil account with a Pluggy item ID was found. {{skipped}} account(s) skipped.",
+    "refreshFailedAccounts": "Failed to refresh: {{accounts}}.",
+    "edit": "Edit account",
+    "empty": "There are no registered accounts yet.",
+    "deleteConfirm": "Are you sure you want to delete the account {{name}}?",
+    "successCreate": "Account created successfully.",
+    "successUpdate": "Account updated successfully.",
+    "successDelete": "Account removed successfully.",
+    "integrationActive": "Active",
+    "integrationInactive": "Inactive",
+    "lastBalanceUpdate": "Balance updated {{date}}",
+    "table": {
+      "name": "Account",
+      "currentBalance": "Current balance",
+      "openFinance": "Open Finance",
+      "lastUpdate": "Last updated"
+    },
+    "form": {
+      "name": "Account name",
+      "namePlaceholder": "e.g. Main account",
+      "bankName": "Bank name",
+      "bankPlaceholder": "e.g. Bank of America",
+      "pluggyItemId": "Pluggy item ID",
+      "pluggyItemIdPlaceholder": "Optional",
+      "pluggyHelp": "The ID will be stored for future integration. Synchronization is not active yet.",
+      "currentBalance": "Current balance"
+    }
   },
   "invoices": {
     "title": "Invoices",

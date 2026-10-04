@@ -8,6 +8,9 @@ const DashboardPage = lazy(() =>
 const CreditCardsPage = lazy(() =>
   import('./pages/credit-cards-page').then(({ CreditCardsPage }) => ({ default: CreditCardsPage })),
 );
+const AccountsPage = lazy(() =>
+  import('./pages/accounts-page').then(({ AccountsPage }) => ({ default: AccountsPage })),
+);
 const InvoicesPage = lazy(() =>
   import('./pages/invoices-page').then(({ InvoicesPage }) => ({ default: InvoicesPage })),
 );
@@ -39,6 +42,8 @@ function renderPage(page: AppPage, onNavigate: (nextPage: AppPage) => void) {
       return <TransactionsPage onNavigate={onNavigate} />;
     case 'invoices':
       return <InvoicesPage onNavigate={onNavigate} />;
+    case 'accounts':
+      return <AccountsPage onNavigate={onNavigate} />;
     case 'limits':
       return <PurchaseLimitsPage onNavigate={onNavigate} />;
     case 'creditCards':

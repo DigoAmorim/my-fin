@@ -1,12 +1,14 @@
 import { Pencil, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CreditCard } from '../../types/credit-card';
 import type { Transaction } from '../../types/transaction';
 import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../../lib/transaction-labels';
+import { sortRows, type SortDirection } from '../../lib/table-sorting';
 import { createCurrencyFormatter } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { SortableTableHead } from '../ui/sortable-table-head';
 
 type TransactionTableProps = {
   transactions: Transaction[];
@@ -32,6 +34,9 @@ export function TransactionTable({
   onDelete,
 }: TransactionTableProps) {
   const { t } = useTranslation();
+  type SortColumn = 'card' | 'purchase' | 'type' | 'debtor' | 'date' | 'installments' | 'description' | 'amount';
+  const [sortBy, setSortBy] = useState<SortColumn>('date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Reaproveita os lookups e o formatador entre renderizacoes da mesma lista.
   const cardNames = useMemo(() => new Map(cards.map((card) => [card.id, card.name])), [cards]);
@@ -39,8 +44,44 @@ export function TransactionTable({
     () => createCurrencyFormatter(locale),
     [locale],
   );
+  const sortedTransactions = useMemo(() => sortRows(
+    transactions,
+    (transaction) => {
+      switch (sortBy) {
+        case 'card':
+          return cardNames.get(transaction.creditCardId) ?? t('transactions.unknownCard');
+        case 'purchase':
+          return t(purchaseTypeLabelKeys[transaction.purchaseType]);
+        case 'type':
+          return t(transactionTypeLabelKeys[transaction.transactionType]);
+        case 'debtor':
+          return transaction.debtor || null;
+        case 'date':
+          return transaction.date;
+        case 'installments':
+          return transaction.totalInstallments * 100 + transaction.currentInstallment;
+        case 'description':
+          return transaction.description || t('transactions.noDescription');
+        case 'amount': {
+          const amount = Math.abs(Number(transaction.installmentAmount));
+          return transaction.transactionType === 'credit' ? -amount : amount;
+        }
+      }
+    },
+    sortDirection,
+    locale,
+  ), [transactions, cardNames, t, sortBy, sortDirection, locale]);
+
+  function toggleSort(column: SortColumn) {
+    if (sortBy === column) {
+      setSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  }
   // O checkbox mestre afeta somente as linhas visiveis e preserva selecoes fora dos filtros.
-  const visibleIds = transactions.map((transaction) => transaction.id);
+  const visibleIds = sortedTransactions.map((transaction) => transaction.id);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id)) && !allVisibleSelected;
 
@@ -86,19 +127,35 @@ export function TransactionTable({
                   className="size-4 cursor-pointer rounded border-border accent-primary"
                 />
               </TableHead>
-              <TableHead>{t('transactions.fields.card')}</TableHead>
-              <TableHead>{t('transactions.fields.purchase')}</TableHead>
-              <TableHead>{t('transactions.fields.type')}</TableHead>
-              <TableHead>{t('transactions.fields.debtor')}</TableHead>
-              <TableHead>{t('transactions.fields.date')}</TableHead>
-              <TableHead className="text-right">{t('transactions.fields.installments')}</TableHead>
-              <TableHead>{t('transactions.fields.description')}</TableHead>
-              <TableHead className="text-right">{t('transactions.fields.amount')}</TableHead>
+              <SortableTableHead direction={sortBy === 'card' ? sortDirection : null} onSort={() => toggleSort('card')}>
+                {t('transactions.fields.card')}
+              </SortableTableHead>
+              <SortableTableHead direction={sortBy === 'purchase' ? sortDirection : null} onSort={() => toggleSort('purchase')}>
+                {t('transactions.fields.purchase')}
+              </SortableTableHead>
+              <SortableTableHead direction={sortBy === 'type' ? sortDirection : null} onSort={() => toggleSort('type')}>
+                {t('transactions.fields.type')}
+              </SortableTableHead>
+              <SortableTableHead direction={sortBy === 'debtor' ? sortDirection : null} onSort={() => toggleSort('debtor')}>
+                {t('transactions.fields.debtor')}
+              </SortableTableHead>
+              <SortableTableHead direction={sortBy === 'date' ? sortDirection : null} onSort={() => toggleSort('date')}>
+                {t('transactions.fields.date')}
+              </SortableTableHead>
+              <SortableTableHead className="text-right" align="right" direction={sortBy === 'installments' ? sortDirection : null} onSort={() => toggleSort('installments')}>
+                {t('transactions.fields.installments')}
+              </SortableTableHead>
+              <SortableTableHead direction={sortBy === 'description' ? sortDirection : null} onSort={() => toggleSort('description')}>
+                {t('transactions.fields.description')}
+              </SortableTableHead>
+              <SortableTableHead className="text-right" align="right" direction={sortBy === 'amount' ? sortDirection : null} onSort={() => toggleSort('amount')}>
+                {t('transactions.fields.amount')}
+              </SortableTableHead>
               <TableHead className="w-[100px] text-right">{t('common.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => {
+            {sortedTransactions.map((transaction) => {
               // Cartao gera saida negativa; os demais tipos representam valor positivo.
               const isCredit = transaction.transactionType === 'credit';
 
@@ -178,7 +235,7 @@ export function TransactionTable({
           />
           <span className="text-xs font-medium text-muted-foreground">{t('transactions.selectAll')}</span>
         </div>
-        {transactions.map((transaction) => {
+        {sortedTransactions.map((transaction) => {
           const isCredit = transaction.transactionType === 'credit';
           const description = transaction.description || t('transactions.noDescription');
 

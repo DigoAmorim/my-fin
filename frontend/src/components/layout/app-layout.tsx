@@ -1,11 +1,11 @@
-import { CreditCard, Gauge, Languages, LayoutDashboard, Menu, Receipt, ReceiptText } from 'lucide-react';
+import { CreditCard, Gauge, Languages, Landmark, LayoutDashboard, Menu, Receipt, ReceiptText } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 
 /** Destinos disponíveis na navegação principal da aplicação. */
-export type AppPage = 'dashboard' | 'creditCards' | 'limits' | 'transactions' | 'invoices';
+export type AppPage = 'dashboard' | 'accounts' | 'creditCards' | 'limits' | 'transactions' | 'invoices';
 
 function navItemClass(isActive: boolean): string {
   return cn(
@@ -97,6 +97,15 @@ export function AppLayout({ children, currentPage, onNavigate }: AppLayoutProps)
             >
               <Receipt size={17} />
               <span>{t('nav.invoices')}</span>
+            </button>
+            <button
+              type="button"
+              aria-current={currentPage === 'accounts' ? 'page' : undefined}
+              onClick={() => navigateTo('accounts')}
+              className={navItemClass(currentPage === 'accounts')}
+            >
+              <Landmark size={17} />
+              <span>{t('nav.accounts')}</span>
             </button>
           </div>
           <div className="flex flex-col gap-0.5">
