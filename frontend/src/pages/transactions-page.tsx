@@ -386,13 +386,13 @@ export function TransactionsPage({ onNavigate }: TransactionsPageProps) {
             <div className="flex items-center justify-between sm:hidden">
               <span className="flex items-baseline gap-1.5 text-xs">
                 <span className="text-muted-foreground">{summaryLabels.credit}</span>
-                <span className={`text-sm font-semibold tabular-nums ${creditColor}`}>
+                <span className={`text-sm font-bold tabular-nums ${creditColor}`}>
                   {amountFormatter.format(summaryTotals.credit)}
                 </span>
               </span>
               <span className="flex items-baseline gap-1.5 text-xs">
                 <span className="text-muted-foreground">{summaryLabels.expense}</span>
-                <span className={`text-sm font-semibold tabular-nums ${expenseColor}`}>
+                <span className={`text-sm font-bold tabular-nums ${expenseColor}`}>
                   {amountFormatter.format(summaryTotals.expense)}
                 </span>
               </span>
@@ -408,13 +408,13 @@ export function TransactionsPage({ onNavigate }: TransactionsPageProps) {
             </span>
             <span className="hidden items-baseline gap-1.5 text-xs sm:flex">
               <span className="text-muted-foreground">{summaryLabels.credit}</span>
-              <span className={`text-sm font-semibold tabular-nums ${creditColor}`}>
+              <span className={`text-sm font-bold tabular-nums ${creditColor}`}>
                 {amountFormatter.format(summaryTotals.credit)}
               </span>
             </span>
             <span className="hidden items-baseline gap-1.5 text-xs sm:flex">
               <span className="text-muted-foreground">{summaryLabels.expense}</span>
-              <span className={`text-sm font-semibold tabular-nums ${expenseColor}`}>
+              <span className={`text-sm font-bold tabular-nums ${expenseColor}`}>
                 {amountFormatter.format(summaryTotals.expense)}
               </span>
             </span>

@@ -212,7 +212,7 @@ export function PurchaseLimitsPage({ onNavigate }: PurchaseLimitsPageProps) {
                   ? 'bg-rose-500'
                   : percentage >= 80
                     ? 'bg-amber-400'
-                    : 'bg-primary';
+                    : 'bg-emerald-500';
                 const typeName = t(purchaseTypeLabelKeys[limit.purchaseType]);
                 return (
                   <article key={limit.id} className="px-4 py-4 transition-colors hover:bg-muted/30 sm:px-5">
