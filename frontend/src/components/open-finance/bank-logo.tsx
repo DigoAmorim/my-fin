@@ -67,7 +67,12 @@ export function BankLogo({ bankName }: BankLogoProps) {
   if (domain && failedDomain !== domain) {
     // Bank names map to official domains; the favicon service returns their public brand icon.
     return (
-      <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-white p-1.5">
+      <span
+        role="img"
+        aria-label={bankName}
+        title={bankName}
+        className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-white p-1.5"
+      >
         <img
           src={`https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${domain}`)}&sz=128`}
           alt=""
@@ -82,6 +87,7 @@ export function BankLogo({ bankName }: BankLogoProps) {
 
   return (
     <span
+      role="img"
       className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-xs font-bold text-primary"
       aria-label={bankName}
       title={bankName}

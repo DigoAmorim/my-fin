@@ -53,4 +53,6 @@ export const env = {
   databaseUrl,
   port,
   webOrigins,
+  pluggyClientId: process.env.PLUGGY_CLIENT_ID?.trim(),
+  pluggyClientSecret: process.env.PLUGGY_CLIENT_SECRET?.trim(),
 };

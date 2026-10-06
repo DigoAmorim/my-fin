@@ -1,4 +1,4 @@
-import { Globe, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Globe, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ import {
   createOpenFinanceBank,
   deleteOpenFinanceBank,
   listOpenFinanceBanks,
+  synchronizeOpenFinanceAccounts,
   updateOpenFinanceBank,
 } from '../lib/open-finance-api';
 import type { OpenFinanceBank, OpenFinanceBankInput } from '../types/open-finance';
@@ -57,6 +58,7 @@ export function OpenFinancePage({ onNavigate }: OpenFinancePageProps) {
   const [formError, setFormError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSynchronizing, setIsSynchronizing] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -147,6 +149,18 @@ export function OpenFinancePage({ onNavigate }: OpenFinancePageProps) {
     }
   }
 
+  async function handleSynchronize() {
+    try {
+      setIsSynchronizing(true);
+      const result = await synchronizeOpenFinanceAccounts();
+      toast.success(t('openFinance.syncSuccess', { count: result.synchronizedAccounts }));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('common.error'));
+    } finally {
+      setIsSynchronizing(false);
+    }
+  }
+
   return (
     <AppLayout currentPage="openFinance" onNavigate={onNavigate}>
       <PageContainer>
@@ -154,10 +168,21 @@ export function OpenFinancePage({ onNavigate }: OpenFinancePageProps) {
           section={t('nav.limits')}
           title={t('openFinance.title')}
           action={(
-            <Button size="small" onClick={openCreateForm}>
-              <Plus size={15} />
-              {t('openFinance.add')}
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="small"
+                onClick={() => void handleSynchronize()}
+                disabled={isSynchronizing}
+              >
+                <RefreshCw size={15} className={isSynchronizing ? 'animate-spin' : undefined} />
+                {t(isSynchronizing ? 'openFinance.synchronizing' : 'openFinance.synchronize')}
+              </Button>
+              <Button size="small" onClick={openCreateForm}>
+                <Plus size={15} />
+                {t('openFinance.add')}
+              </Button>
+            </>
           )}
         />
 

@@ -1,4 +1,5 @@
 import { withErrorHandling } from '../../lib/api-errors';
+import { synchronizeAccounts as synchronize } from '../account/account-service';
 import {
   createOpenFinanceBank as create,
   deleteOpenFinanceBank as remove,
@@ -21,4 +22,8 @@ export const updateOpenFinanceBank = withErrorHandling(async (request, response)
 export const deleteOpenFinanceBank = withErrorHandling(async (request, response) => {
   await remove(request.params.id);
   response.status(204).end();
+});
+
+export const synchronizeOpenFinanceAccounts = withErrorHandling(async (_request, response) => {
+  response.json(await synchronize());
 });

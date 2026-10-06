@@ -31,6 +31,12 @@ Use `npm run db:down` para parar o banco. Os dados locais ficam em um volume Doc
 
 O endpoint de prontidão valida a conexão com o banco. Ainda não há autenticação, regras financeiras ou configuração de produção; não use os dados de exemplo fora do desenvolvimento local.
 
+## Contas e Open Finance
+
+Para sincronizar contas pela Pluggy, configure `PLUGGY_CLIENT_ID` e `PLUGGY_CLIENT_SECRET` no `.env`. O botão **Atualizar dados** na configuração do Open Finance autentica na Pluggy, consulta as contas correntes e poupanças habilitadas para cada banco e atualiza os saldos existentes sem duplicá-los. Renda fixa e variável ainda não são sincronizadas.
+
+A tela **Contas** lista os saldos sincronizados e manuais, usando a data `updatedAt` retornada pela Pluggy para contas Open Finance. Contas manuais podem ser criadas, editadas e excluídas; contas sincronizadas só podem ser excluídas. O formulário manual registra a data e hora do navegador no momento em que é salvo. A migração `011_create_account.sql` cria a tabela usada por esse recurso.
+
 ## API de transações
 
 As transações ficam disponíveis em `GET` e `POST /api/transactions`, além de `GET`, `PUT` e `DELETE /api/transactions/:id`.

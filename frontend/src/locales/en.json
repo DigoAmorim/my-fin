@@ -9,6 +9,7 @@
     "creditCards": "Cards",
     "limits": "Limits",
     "openFinance": "Open Finance",
+    "accounts": "Accounts",
     "transactions": "Transactions",
     "invoices": "I nvoices",
     "groupFeatures": "Features",
@@ -164,7 +165,34 @@
     "validationOptionRequired": "Select at least one data type to synchronize.",
     "created": "Bank added successfully.",
     "updated": "Bank updated successfully.",
-    "deleted": "Bank removed successfully."
+    "deleted": "Bank removed successfully.",
+    "synchronize": "Refresh data",
+    "synchronizing": "Refreshing...",
+    "syncSuccess": "{{count}} account(s) synchronized successfully."
+  },
+  "accounts": {
+    "title": "Accounts",
+    "listTitle": "Registered accounts",
+    "description": "Review each account balance and the last time it was updated.",
+    "empty": "There are no registered accounts yet.",
+    "add": "Add account",
+    "edit": "Edit manual account",
+    "formDescription": "Enter the bank, account details, and current balance.",
+    "bankName": "Bank",
+    "accountNumber": "Account number",
+    "accountType": "Account type",
+    "balance": "Balance",
+    "updatedAt": "Last updated",
+    "retry": "Try again",
+    "deleteTitle": "Delete account",
+    "deleteConfirm": "Are you sure you want to delete the account at {{name}}?",
+    "types": {
+      "checking": "Checking account",
+      "savings": "Savings account"
+    },
+    "created": "Account added successfully.",
+    "updated": "Account updated successfully.",
+    "deleted": "Account deleted successfully."
   },
   "transactions": {
     "title": "Card transactions",

@@ -9,6 +9,7 @@
     "creditCards": "Cartões",
     "limits": "Limites",
     "openFinance": "Open Finance",
+    "accounts": "Contas",
     "transactions": "Transações",
     "invoices": "Faturas",
     "groupFeatures": "Funcionalidades",
@@ -164,7 +165,34 @@
     "validationOptionRequired": "Selecione pelo menos um tipo de dado para sincronizar.",
     "created": "Banco adicionado com sucesso.",
     "updated": "Banco atualizado com sucesso.",
-    "deleted": "Banco removido com sucesso."
+    "deleted": "Banco removido com sucesso.",
+    "synchronize": "Atualizar dados",
+    "synchronizing": "Atualizando...",
+    "syncSuccess": "{{count}} conta(s) sincronizada(s) com sucesso."
+  },
+  "accounts": {
+    "title": "Contas",
+    "listTitle": "Contas cadastradas",
+    "description": "Consulte os saldos e a data da última atualização de cada conta.",
+    "empty": "Ainda não há contas cadastradas.",
+    "add": "Adicionar conta",
+    "edit": "Editar conta manual",
+    "formDescription": "Informe o banco, os dados da conta e o saldo atual.",
+    "bankName": "Banco",
+    "accountNumber": "Número da conta",
+    "accountType": "Tipo de conta",
+    "balance": "Saldo",
+    "updatedAt": "Atualizado em",
+    "retry": "Tentar novamente",
+    "deleteTitle": "Excluir conta",
+    "deleteConfirm": "Deseja realmente excluir a conta do banco {{name}}?",
+    "types": {
+      "checking": "Conta corrente",
+      "savings": "Conta poupança"
+    },
+    "created": "Conta adicionada com sucesso.",
+    "updated": "Conta atualizada com sucesso.",
+    "deleted": "Conta excluída com sucesso."
   },
   "transactions": {
     "title": "Transações de cartão",

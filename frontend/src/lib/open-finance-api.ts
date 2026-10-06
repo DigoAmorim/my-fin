@@ -1,6 +1,14 @@
 import { apiRequest } from './api-client';
 import type { OpenFinanceBank, OpenFinanceBankInput } from '../types/open-finance';
 
+export type AccountSyncResult = { synchronizedAccounts: number };
+
+export function synchronizeOpenFinanceAccounts(): Promise<AccountSyncResult> {
+  return apiRequest('/api/open-finance/sync-accounts', {
+    method: 'POST',
+  }, 'Could not synchronize Open Finance accounts.');
+}
+
 export function listOpenFinanceBanks(signal?: AbortSignal): Promise<OpenFinanceBank[]> {
   return apiRequest('/api/open-finance/banks', { signal }, 'Could not load Open Finance banks.');
 }
