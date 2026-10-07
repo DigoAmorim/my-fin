@@ -1,6 +1,7 @@
 import autoTable from 'jspdf-autotable';
 import { jsPDF } from 'jspdf';
 import { createCurrencyFormatter } from './utils';
+import { minorUnitsToNumber, toMinorUnits } from './money';
 import type { PaidTransaction } from './transaction-api';
 
 export type InvoicePdfLabels = {
@@ -34,9 +35,9 @@ type JsPdfWithAutoTable = jsPDF & {
   lastAutoTable?: { finalY: number };
 };
 
-function transactionNetAmount(transaction: PaidTransaction): number {
-  const amount = Math.abs(Number(transaction.installmentAmount));
-  return amount;
+function transactionNetAmount(transaction: PaidTransaction): bigint {
+  const amount = toMinorUnits(transaction.installmentAmount);
+  return amount < 0n ? -amount : amount;
 }
 
 function displayMonth(month: string, locale: string): string {
@@ -80,7 +81,10 @@ export function downloadInvoicePdf({ cardName, month, locale, transactions, labe
   const debtorTotals = orderedGroups
     .map(([debtor, items]) => [
       debtor || labels.noDebtor,
-      currency.format(items.reduce((total, transaction) => total + transactionNetAmount(transaction), 0)),
+      currency.format(minorUnitsToNumber(items.reduce(
+        (total, transaction) => total + transactionNetAmount(transaction),
+        0n,
+      ))),
     ]);
 
   document.setFillColor(24, 43, 65);
@@ -130,7 +134,10 @@ export function downloadInvoicePdf({ cardName, month, locale, transactions, labe
       cursorY = margin;
     }
 
-    const groupTotal = items.reduce((total, transaction) => total + transactionNetAmount(transaction), 0);
+    const groupTotal = minorUnitsToNumber(items.reduce(
+      (total, transaction) => total + transactionNetAmount(transaction),
+      0n,
+    ));
     document.setTextColor(24, 43, 65);
     document.setFont('helvetica', 'bold');
     document.setFontSize(11);
@@ -149,7 +156,7 @@ export function downloadInvoicePdf({ cardName, month, locale, transactions, labe
         labels.purchaseTypeLabels[transaction.purchaseType],
         labels.transactionTypeLabels[transaction.transactionType],
         `${transaction.currentInstallment}/${transaction.totalInstallments}`,
-        currency.format(transactionNetAmount(transaction)),
+        currency.format(minorUnitsToNumber(transactionNetAmount(transaction))),
       ]),
       theme: 'grid',
       styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.5, textColor: [38, 48, 58], overflow: 'linebreak' },

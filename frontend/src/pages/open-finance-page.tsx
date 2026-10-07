@@ -153,7 +153,10 @@ export function OpenFinancePage({ onNavigate }: OpenFinancePageProps) {
     try {
       setIsSynchronizing(true);
       const result = await synchronizeOpenFinanceAccounts();
-      toast.success(t('openFinance.syncSuccess', { count: result.synchronizedAccounts }));
+      toast.success(t('openFinance.syncSuccess', {
+        accounts: result.synchronizedAccounts,
+        investments: result.synchronizedInvestments,
+      }));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('common.error'));
     } finally {

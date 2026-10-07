@@ -33,9 +33,17 @@ O endpoint de prontidão valida a conexão com o banco. Ainda não há autentica
 
 ## Contas e Open Finance
 
-Para sincronizar contas pela Pluggy, configure `PLUGGY_CLIENT_ID` e `PLUGGY_CLIENT_SECRET` no `.env`. O botão **Atualizar dados** na configuração do Open Finance autentica na Pluggy, consulta as contas correntes e poupanças habilitadas para cada banco e atualiza os saldos existentes sem duplicá-los. Renda fixa e variável ainda não são sincronizadas.
+Para sincronizar dados pela Pluggy, configure `PLUGGY_CLIENT_ID` e `PLUGGY_CLIENT_SECRET` no `.env`. O botão **Atualizar dados** na configuração do Open Finance autentica uma vez e consulta, em paralelo, contas correntes/poupanças habilitadas e investimentos `FIXED_INCOME` dos bancos com renda fixa ou variável ativada. Contas são atualizadas por banco e número; investimentos são agrupados por banco e `subtype` antes de serem gravados em `my_fin.account`. Excluir um investimento remove fisicamente o grupo; uma sincronização futura o cria novamente se continuar presente na Pluggy.
 
-A tela **Contas** lista os saldos sincronizados e manuais, usando a data `updatedAt` retornada pela Pluggy para contas Open Finance. Contas manuais podem ser criadas, editadas e excluídas; contas sincronizadas só podem ser excluídas. O formulário manual registra a data e hora do navegador no momento em que é salvo. A migração `011_create_account.sql` cria a tabela usada por esse recurso.
+A tela **Contas** lista os saldos sincronizados e manuais, usando a data retornada pela Pluggy para contas Open Finance. Contas manuais podem ser criadas, editadas e excluídas; contas sincronizadas só podem ser excluídas. A tela **Renda fixa** apresenta uma linha por banco e tipo de investimento, com o valor agregado e a data mais recente do grupo. Também é possível cadastrar aplicações de renda fixa manualmente; apenas essas podem ser editadas, enquanto posições Pluggy são somente leitura. O formulário manual registra a data e hora do navegador no momento em que é salvo.
+
+## Arquitetura e manutenção
+
+- `frontend/src/pages` coordena o estado e a composição das telas; componentes reutilizáveis ficam em `components`, chamadas HTTP em `lib` e contratos da API em `types`.
+- `backend/src/modules/<domínio>` mantém rotas, controllers, serviços, repositórios e tipos próximos ao domínio. Controllers adaptam HTTP, serviços aplicam regras e repositórios concentram SQL.
+- `backend/src/lib` contém infraestrutura compartilhada, como validação, erros, decimal e cliente Pluggy; regras específicas de um domínio permanecem no módulo correspondente.
+- `backend/database/migrations` contém alterações de schema versionadas. Não altere manualmente tabelas de ambientes já migrados sem registrar a mudança em uma migration.
+- Verificações locais: `npm test --workspace @my-fin/backend`, `npm run build` e `npm run lint`.
 
 ## API de transações
 

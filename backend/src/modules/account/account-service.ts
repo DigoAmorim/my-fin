@@ -1,5 +1,5 @@
-import { env } from '../../config/env';
 import { ApiError } from '../../lib/api-errors';
+import { createPluggyApiKey, getPluggyPages } from '../../lib/pluggy-client';
 import { asRecord, parsePositiveId } from '../../lib/request-validation';
 import * as repository from './account-repository';
 import type { AccountFields, AccountType, PluggyAccount } from './account-types';
@@ -7,7 +7,7 @@ import type { AccountFields, AccountType, PluggyAccount } from './account-types'
 const MAX_BALANCE = 999_999_999_999.99;
 
 function isAccountType(value: unknown): value is AccountType {
-  return value === 'checking' || value === 'savings';
+  return value === 'checking' || value === 'savings' || value === 'fixed_income';
 }
 
 export function parseManualAccountFields(input: unknown): AccountFields {
@@ -48,8 +48,8 @@ export function parseManualAccountFields(input: unknown): AccountFields {
   };
 }
 
-export async function listAccounts() {
-  return repository.findAll();
+export async function listAccounts(accountType?: AccountType) {
+  return repository.findAll(accountType);
 }
 
 export async function createManualAccount(input: unknown) {
@@ -102,10 +102,13 @@ export function parsePluggyAccounts(input: unknown, bank: repository.OpenFinance
       ? 'checking'
       : subtype === 'SAVINGS_ACCOUNT'
         ? 'savings'
-        : undefined;
+        : subtype === 'FIXED_INCOME'
+          ? 'fixed_income'
+          : undefined;
     if (!accountType) continue;
     if ((accountType === 'checking' && !bank.checking_account)
-      || (accountType === 'savings' && !bank.savings_account)) continue;
+      || (accountType === 'savings' && !bank.savings_account)
+      || (accountType === 'fixed_income' && !bank.fixed_income)) continue;
 
     const balance = typeof account.balance === 'number' && Number.isFinite(account.balance)
       ? String(account.balance)
@@ -138,97 +141,21 @@ export function parsePluggyAccounts(input: unknown, bank: repository.OpenFinance
   return accounts;
 }
 
-async function readJson(
-  response: Response,
-  failureKey: 'pluggyAuthenticationFailed' | 'pluggyRequestFailed',
-): Promise<unknown> {
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
-    throw new ApiError(502, failureKey);
-  }
-  if (!response.ok) throw new ApiError(502, failureKey);
-  return body;
-}
-
-async function getPluggyToken(): Promise<string> {
-  if (!env.pluggyClientId || !env.pluggyClientSecret) {
-    throw new ApiError(503, 'pluggyCredentialsRequired');
-  }
-
-  let response: Response;
-  try {
-    response = await fetch('https://api.pluggy.ai/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        clientId: env.pluggyClientId,
-        clientSecret: env.pluggyClientSecret,
-      }),
-      signal: AbortSignal.timeout(30_000),
-    });
-  } catch {
-    throw new ApiError(502, 'pluggyAuthenticationFailed');
-  }
-
-  const body = await readJson(response, 'pluggyAuthenticationFailed');
-  const apiKey = typeof body === 'object' && body !== null && 'apiKey' in body
-    ? body.apiKey
-    : undefined;
-  if (typeof apiKey !== 'string' || !apiKey) {
-    throw new ApiError(502, 'pluggyAuthenticationFailed');
-  }
-  return apiKey;
-}
-
 async function getPluggyAccounts(
-  token: string,
+  apiKey: string,
   bank: repository.OpenFinanceBankRow,
 ): Promise<PluggyAccount[]> {
-  const pageSize = 100;
-  const accounts: PluggyAccount[] = [];
-  let page = 1;
-
-  while (true) {
-    let response: Response;
-    try {
-      const url = new URL('https://api.pluggy.ai/accounts');
-      url.searchParams.set('itemId', bank.pluggy_item_id);
-      url.searchParams.set('page', String(page));
-      url.searchParams.set('pageSize', String(pageSize));
-      response = await fetch(url, {
-        headers: { 'X-API-KEY': token },
-        signal: AbortSignal.timeout(30_000),
-      });
-    } catch {
-      throw new ApiError(502, 'pluggyRequestFailed');
-    }
-
-    const input: unknown = await readJson(response, 'pluggyRequestFailed');
-    const body = typeof input === 'object' && input !== null && !Array.isArray(input)
-      ? input as Record<string, unknown>
-      : null;
-    if (!body || !Array.isArray(body.results)) throw new ApiError(502, 'pluggyResponseInvalid');
-    accounts.push(...parsePluggyAccounts(body, bank));
-
-    const totalPages = body.totalPages;
-    if (typeof totalPages === 'number' && Number.isInteger(totalPages) && totalPages >= 0) {
-      if (page >= totalPages) break;
-    } else if (body.results.length < pageSize) {
-      break;
-    }
-    page += 1;
-  }
-
-  return accounts;
+  const results = await getPluggyPages(apiKey, '/accounts', { itemId: bank.pluggy_item_id });
+  return parsePluggyAccounts({ results }, bank);
 }
 
-export async function synchronizeAccounts(): Promise<{ synchronizedAccounts: number }> {
+export async function synchronizeAccounts(
+  apiKey?: string,
+): Promise<{ synchronizedAccounts: number }> {
   const banks = await repository.findForSynchronization();
   if (banks.length === 0) return { synchronizedAccounts: 0 };
 
-  const token = await getPluggyToken();
+  const token = apiKey ?? await createPluggyApiKey();
   const batches: Array<{ bank: repository.OpenFinanceBankRow; accounts: PluggyAccount[] }> = [];
   for (const bank of banks) {
     batches.push({ bank, accounts: await getPluggyAccounts(token, bank) });

@@ -23,6 +23,7 @@ import { listCreditCards } from '../lib/credit-card-api';
 import { resolveDateLocales } from '../lib/date-locales';
 import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../lib/transaction-labels';
 import { createCurrencyFormatter } from '../lib/utils';
+import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
 import { sortRows, type SortDirection } from '../lib/table-sorting';
 import type { CreditCard } from '../types/credit-card';
 import type { PurchaseType, TransactionType } from '../types/transaction';
@@ -176,17 +177,20 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
     && pdfDebtors.every((debtor) => selectedPrintDebtors.includes(debtor));
 
   const summaryTotals = useMemo(() => {
-    let credit = 0;
-    let expense = 0;
+    let creditCents = 0n;
+    let expenseCents = 0n;
 
     for (const transaction of filteredTransactions) {
-      const amount = Number(transaction.installmentAmount);
-      if (!Number.isFinite(amount)) continue;
-      if (transaction.transactionType === 'credit') credit += amount;
-      else expense += amount;
+      const amount = toMinorUnits(transaction.installmentAmount);
+      if (transaction.transactionType === 'credit') creditCents += amount;
+      else expenseCents += amount;
     }
 
-    return { credit, expense, balance: expense - credit };
+    return {
+      credit: minorUnitsToNumber(creditCents),
+      expense: minorUnitsToNumber(expenseCents),
+      balance: minorUnitsToNumber(expenseCents - creditCents),
+    };
   }, [filteredTransactions]);
   const summaryLabels = intlLocale === 'pt-BR'
     ? { credit: 'Crédito', expense: 'Despesa', balance: 'Saldo' }

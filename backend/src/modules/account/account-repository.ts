@@ -17,6 +17,7 @@ export interface OpenFinanceBankRow {
   bank_name: string;
   checking_account: boolean;
   savings_account: boolean;
+  fixed_income: boolean;
   pluggy_item_id: string;
 }
 
@@ -37,12 +38,16 @@ function toAccount(row: AccountRow): Account {
   };
 }
 
-export async function findAll(): Promise<Account[]> {
-  const result = await pool.query<AccountRow>(
-    `SELECT ${ACCOUNT_COLUMNS}
-     FROM my_fin.account
-     ORDER BY bank_name, account_type, account_number, id`,
-  );
+export async function findAll(accountType?: AccountType): Promise<Account[]> {
+  const query = accountType
+    ? `SELECT ${ACCOUNT_COLUMNS}
+       FROM my_fin.account
+       WHERE account_type = $1
+       ORDER BY bank_name, account_type, account_number, id`
+    : `SELECT ${ACCOUNT_COLUMNS}
+       FROM my_fin.account
+       ORDER BY bank_name, account_type, account_number, id`;
+  const result = await pool.query<AccountRow>(query, accountType ? [accountType] : []);
 
   return result.rows.map(toAccount);
 }
@@ -106,9 +111,9 @@ export async function remove(id: number): Promise<boolean> {
 
 export async function findForSynchronization(): Promise<OpenFinanceBankRow[]> {
   const result = await pool.query<OpenFinanceBankRow>(
-    `SELECT id, bank_name, checking_account, savings_account, pluggy_item_id
+    `SELECT id, bank_name, checking_account, savings_account, fixed_income, pluggy_item_id
      FROM my_fin.bank
-     WHERE checking_account OR savings_account
+     WHERE checking_account OR savings_account OR fixed_income
      ORDER BY id`,
   );
 
@@ -125,14 +130,12 @@ export async function upsertPluggyAccounts(
       for (const account of accounts) {
         await client.query(
           `INSERT INTO my_fin.account (
-             bank_id, bank_name, account_number, account_type, balance, updated_at, source, pluggy_account_id
+             bank_id, bank_name, account_number, account_type, balance, updated_at, source
            )
-           VALUES ($1, $2, $3, $4, $5, $6, 'pluggy', $7)
-           ON CONFLICT (bank_id, pluggy_account_id)
+           VALUES ($1, $2, $3, $4, $5, $6, 'pluggy')
+           ON CONFLICT (bank_id, account_number)
+           WHERE source = 'pluggy'
            DO UPDATE SET
-             bank_name = EXCLUDED.bank_name,
-             account_number = EXCLUDED.account_number,
-             account_type = EXCLUDED.account_type,
              balance = EXCLUDED.balance,
              updated_at = EXCLUDED.updated_at`,
           [
@@ -142,7 +145,6 @@ export async function upsertPluggyAccounts(
             account.subtype,
             account.balance,
             account.updatedAt,
-            account.id,
           ],
         );
       }

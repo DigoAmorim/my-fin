@@ -1,8 +1,12 @@
 import { apiRequest } from './api-client';
-import type { Account, ManualAccountInput } from '../types/account';
+import type { Account, AccountType, ManualAccountInput } from '../types/account';
 
-export function listAccounts(signal?: AbortSignal): Promise<Account[]> {
-  return apiRequest('/api/accounts', { signal }, 'Could not load accounts.');
+export function listAccounts(
+  signal?: AbortSignal,
+  accountType?: AccountType,
+): Promise<Account[]> {
+  const query = accountType ? `?type=${encodeURIComponent(accountType)}` : '';
+  return apiRequest(`/api/accounts${query}`, { signal }, 'Could not load accounts.');
 }
 
 export function createManualAccount(input: ManualAccountInput): Promise<Account> {

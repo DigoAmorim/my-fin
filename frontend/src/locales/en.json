@@ -10,6 +10,7 @@
     "limits": "Limits",
     "openFinance": "Open Finance",
     "accounts": "Accounts",
+    "fixedIncome": "Fixed income",
     "transactions": "Transactions",
     "invoices": "I nvoices",
     "groupFeatures": "Features",
@@ -37,6 +38,7 @@
     "empty": "No records found.",
     "status": "Status",
     "actions": "Actions",
+    "at": "at",
     "error": "Something went wrong. Please try again."
   },
   "dashboard": {
@@ -168,13 +170,14 @@
     "deleted": "Bank removed successfully.",
     "synchronize": "Refresh data",
     "synchronizing": "Refreshing...",
-    "syncSuccess": "{{count}} account(s) synchronized successfully."
+    "syncSuccess": "{{accounts}} account(s) and {{investments}} investment(s) synchronized successfully."
   },
   "accounts": {
     "title": "Accounts",
     "listTitle": "Registered accounts",
     "description": "Review each account balance and the last time it was updated.",
     "empty": "There are no registered accounts yet.",
+    "total": "Total accounts",
     "add": "Add account",
     "edit": "Edit manual account",
     "formDescription": "Enter the bank, account details, and current balance.",
@@ -188,11 +191,36 @@
     "deleteConfirm": "Are you sure you want to delete the account at {{name}}?",
     "types": {
       "checking": "Checking account",
-      "savings": "Savings account"
+      "savings": "Savings account",
+      "fixedIncome": "Fixed income"
     },
     "created": "Account added successfully.",
     "updated": "Account updated successfully.",
     "deleted": "Account deleted successfully."
+  },
+  "rendaFixa": {
+    "title": "Fixed income",
+    "listTitle": "Fixed income investments",
+    "description": "Review your total fixed income balance.",
+    "total": "Total fixed income balance",
+    "bank": "Bank",
+    "subtype": "Account",
+    "amount": "Amount",
+    "updatedAt": "Updated at",
+    "add": "New fixed income",
+    "edit": "Edit fixed income",
+    "formDescription": "Enter the bank, investment type, and current balance.",
+    "applicationType": "Investment type",
+    "created": "Fixed income added successfully.",
+    "updated": "Fixed income updated successfully.",
+    "empty": "There are no fixed income investments available yet.",
+    "retry": "Try again",
+    "deleteTitle": "Remove investment",
+    "deleteConfirm": "Are you sure you want to delete {{name}} from {{bank}}?",
+    "deleted": "Investment deleted successfully.",
+    "subtypes": {
+      "TREASURY": "Treasury"
+    }
   },
   "transactions": {
     "title": "Card transactions",

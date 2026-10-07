@@ -24,6 +24,7 @@ import {
   updatePurchaseLimit,
 } from '../lib/purchase-limit-api';
 import { listTransactions } from '../lib/transaction-api';
+import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
 import { createCurrencyFormatter } from '../lib/utils';
 import type { PurchaseLimit, PurchaseLimitInput } from '../types/purchase-limit';
 import type { PurchaseType, Transaction } from '../types/transaction';
@@ -59,12 +60,11 @@ export function PurchaseLimitsPage({ onNavigate }: PurchaseLimitsPageProps) {
     [locale],
   );
   const spentByType = useMemo(() => {
-    const totals = new Map<PurchaseType, number>(PURCHASE_TYPES.map((type) => [type, 0]));
+    const totals = new Map<PurchaseType, bigint>(PURCHASE_TYPES.map((type) => [type, 0n]));
     for (const transaction of transactions) {
-      const value = Number(transaction.installmentAmount);
-      if (!Number.isFinite(value)) continue;
+      const value = toMinorUnits(transaction.installmentAmount);
       const direction = transaction.transactionType === 'credit' ? -1 : 1;
-      totals.set(transaction.purchaseType, (totals.get(transaction.purchaseType) ?? 0) + direction * value);
+      totals.set(transaction.purchaseType, (totals.get(transaction.purchaseType) ?? 0n) + BigInt(direction) * value);
     }
     return totals;
   }, [transactions]);
@@ -205,9 +205,11 @@ export function PurchaseLimitsPage({ onNavigate }: PurchaseLimitsPageProps) {
           ) : (
             <div className="divide-y divide-border">
               {limits.map((limit) => {
-                const spent = spentByType.get(limit.purchaseType) ?? 0;
-                const target = Number(limit.amount);
-                const percentage = target > 0 ? Math.max(0, (spent / target) * 100) : 0;
+                const spent = spentByType.get(limit.purchaseType) ?? 0n;
+                const target = toMinorUnits(limit.amount);
+                const percentage = target > 0n
+                  ? Math.max(0, (Number(spent) / Number(target)) * 100)
+                  : 0;
                 const fillColor = percentage >= 100
                   ? 'bg-rose-500'
                   : percentage >= 80
@@ -241,9 +243,9 @@ export function PurchaseLimitsPage({ onNavigate }: PurchaseLimitsPageProps) {
                           />
                         </div>
                         <p className="m-0 text-xs tabular-nums text-muted-foreground">
-                          {currencyFormatter.format(spent)}
+                          {currencyFormatter.format(minorUnitsToNumber(spent))}
                           <span className="px-1">/</span>
-                          {currencyFormatter.format(target)}
+                          {currencyFormatter.format(minorUnitsToNumber(target))}
                         </p>
                       </div>
                       <div className="flex shrink-0 gap-1">

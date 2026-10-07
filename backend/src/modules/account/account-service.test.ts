@@ -21,6 +21,13 @@ test('normalizes manual account details and preserves its timestamp and decimal 
   });
 });
 
+test('accepts fixed income as a manual account type', () => {
+  assert.equal(parseManualAccountFields({
+    ...validAccount,
+    accountType: 'fixed_income',
+  }).accountType, 'fixed_income');
+});
+
 test('validates required account fields, supported types, amount precision, and timestamp', () => {
   const invalidCases: Array<[Record<string, unknown>, string]> = [
     [{ ...validAccount, bankName: ' ' }, 'accountBankNameRequired'],
@@ -39,12 +46,13 @@ test('validates required account fields, supported types, amount precision, and 
   }
 });
 
-test('keeps only enabled checking and savings accounts from Pluggy', () => {
+test('keeps only enabled bank account types from Pluggy', () => {
   const bank = {
     id: 1,
     bank_name: 'Banco Exemplo',
     checking_account: true,
     savings_account: false,
+    fixed_income: true,
     pluggy_item_id: 'item-123',
   };
 
@@ -58,8 +66,8 @@ test('keeps only enabled checking and savings accounts from Pluggy', () => {
         updatedAt: '2026-10-05T10:30:00.000Z',
       },
       {
-        id: 'savings-1',
-        subtype: 'SAVINGS_ACCOUNT',
+        id: 'fixed-income-1',
+        subtype: 'FIXED_INCOME',
         number: '00987-6',
         balance: 400,
         updatedAt: '2026-10-05T10:30:00.000Z',
@@ -71,6 +79,12 @@ test('keeps only enabled checking and savings accounts from Pluggy', () => {
     number: '00123-4',
     subtype: 'checking',
     balance: '250.75',
+    updatedAt: '2026-10-05T10:30:00.000Z',
+  }, {
+    id: 'fixed-income-1',
+    number: '00987-6',
+    subtype: 'fixed_income',
+    balance: '400',
     updatedAt: '2026-10-05T10:30:00.000Z',
   }]);
 });
@@ -90,6 +104,7 @@ test('rejects incomplete account data for an enabled Pluggy account type', () =>
       bank_name: 'Banco Exemplo',
       checking_account: true,
       savings_account: false,
+      fixed_income: false,
       pluggy_item_id: 'item-123',
     }),
     (error: unknown) => error instanceof ApiError && error.messageKey === 'pluggyResponseInvalid',
@@ -102,6 +117,7 @@ test('rejects missing or invalid Pluggy account update timestamps', () => {
     bank_name: 'Banco Exemplo',
     checking_account: true,
     savings_account: false,
+    fixed_income: false,
     pluggy_item_id: 'item-123',
   };
   const account = {

@@ -5,9 +5,15 @@ import {
   listAccounts as list,
   updateManualAccount as update,
 } from './account-service';
+import type { AccountType } from './account-types';
 
-export const listAccounts = withErrorHandling(async (_request, response) => {
-  response.json(await list());
+export const listAccounts = withErrorHandling(async (request, response) => {
+  const accountType = request.query.type;
+  const normalizedType = typeof accountType === 'string'
+    && (accountType === 'checking' || accountType === 'savings' || accountType === 'fixed_income')
+    ? accountType as AccountType
+    : undefined;
+  response.json(await list(normalizedType));
 });
 
 export const createAccount = withErrorHandling(async (request, response) => {

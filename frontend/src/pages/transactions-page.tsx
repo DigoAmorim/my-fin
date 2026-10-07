@@ -21,6 +21,7 @@ import {
 } from '../components/ui/dialog';
 import { createTransaction, deleteTransaction, listTransactions, payTransactions, updateTransaction } from '../lib/transaction-api';
 import { listCreditCards } from '../lib/credit-card-api';
+import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
 import { createCurrencyFormatter } from '../lib/utils';
 import type { CreditCard } from '../types/credit-card';
 import type { PurchaseType, Transaction, TransactionFormValues, TransactionInput, TransactionType } from '../types/transaction';
@@ -137,31 +138,31 @@ export function TransactionsPage({ onNavigate }: TransactionsPageProps) {
     [locale],
   );
   const summaryTotals = useMemo(() => {
-    let credit = 0;
-    let expense = 0;
+    let creditCents = 0n;
+    let expenseCents = 0n;
 
     for (const transaction of filteredTransactions) {
-      const amount = Number(transaction.installmentAmount);
-      if (!Number.isFinite(amount)) continue;
+      const amount = toMinorUnits(transaction.installmentAmount);
 
-      if (transaction.transactionType === 'credit') credit += amount;
-      else expense += amount;
+      if (transaction.transactionType === 'credit') creditCents += amount;
+      else expenseCents += amount;
     }
 
-    return { credit, expense, balance: expense - credit };
+    const credit = minorUnitsToNumber(creditCents);
+    const expense = minorUnitsToNumber(expenseCents);
+    return { credit, expense, balance: minorUnitsToNumber(expenseCents - creditCents) };
   }, [filteredTransactions]);
   const selectedBalance = useMemo(() => {
-    let balance = 0;
+    let balanceCents = 0n;
 
     for (const transaction of transactions) {
       if (!selectedTransactionIds.has(transaction.id)) continue;
-      const amount = Number(transaction.installmentAmount);
-      if (!Number.isFinite(amount)) continue;
+      const amount = toMinorUnits(transaction.installmentAmount);
 
-      balance += transaction.transactionType === 'credit' ? -amount : amount;
+      balanceCents += transaction.transactionType === 'credit' ? -amount : amount;
     }
 
-    return balance;
+    return minorUnitsToNumber(balanceCents);
   }, [transactions, selectedTransactionIds]);
   const summaryLabels = locale === 'pt-BR'
     ? { credit: 'Crédito', expense: 'Despesa', balance: 'Saldo', selectedBalance: 'Saldo selecionado' }

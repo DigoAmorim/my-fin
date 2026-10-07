@@ -1,11 +1,11 @@
-import { CreditCard, Gauge, Globe, Languages, LayoutDashboard, Menu, Receipt, ReceiptText, Wallet } from 'lucide-react';
+import { BadgeDollarSign, CreditCard, Gauge, Globe, Languages, LayoutDashboard, Menu, Receipt, ReceiptText, Wallet } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 
 /** Destinos disponíveis na navegação principal da aplicação. */
-export type AppPage = 'dashboard' | 'accounts' | 'creditCards' | 'limits' | 'openFinance' | 'transactions' | 'invoices';
+export type AppPage = 'dashboard' | 'accounts' | 'fixedIncome' | 'creditCards' | 'limits' | 'openFinance' | 'transactions' | 'invoices';
 
 function navItemClass(isActive: boolean): string {
   return cn(
@@ -106,6 +106,15 @@ export function AppLayout({ children, currentPage, onNavigate }: AppLayoutProps)
             >
               <Wallet size={17} />
               <span>{t('nav.accounts')}</span>
+            </button>
+            <button
+              type="button"
+              aria-current={currentPage === 'fixedIncome' ? 'page' : undefined}
+              onClick={() => navigateTo('fixedIncome')}
+              className={navItemClass(currentPage === 'fixedIncome')}
+            >
+              <BadgeDollarSign size={17} />
+              <span>{t('nav.fixedIncome')}</span>
             </button>
           </div>
           <div className="flex flex-col gap-0.5">

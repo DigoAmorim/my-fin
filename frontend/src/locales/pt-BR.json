@@ -10,6 +10,7 @@
     "limits": "Limites",
     "openFinance": "Open Finance",
     "accounts": "Contas",
+    "fixedIncome": "Renda fixa",
     "transactions": "Transações",
     "invoices": "Faturas",
     "groupFeatures": "Funcionalidades",
@@ -37,6 +38,7 @@
     "empty": "Nenhum registro encontrado.",
     "status": "Status",
     "actions": "Ações",
+    "at": "às",
     "error": "Ocorreu um erro. Tente novamente."
   },
   "dashboard": {
@@ -168,13 +170,14 @@
     "deleted": "Banco removido com sucesso.",
     "synchronize": "Atualizar dados",
     "synchronizing": "Atualizando...",
-    "syncSuccess": "{{count}} conta(s) sincronizada(s) com sucesso."
+    "syncSuccess": "{{accounts}} conta(s) e {{investments}} investimento(s) sincronizado(s) com sucesso."
   },
   "accounts": {
     "title": "Contas",
     "listTitle": "Contas cadastradas",
     "description": "Consulte os saldos e a data da última atualização de cada conta.",
     "empty": "Ainda não há contas cadastradas.",
+    "total": "Total das contas",
     "add": "Adicionar conta",
     "edit": "Editar conta manual",
     "formDescription": "Informe o banco, os dados da conta e o saldo atual.",
@@ -188,11 +191,36 @@
     "deleteConfirm": "Deseja realmente excluir a conta do banco {{name}}?",
     "types": {
       "checking": "Conta corrente",
-      "savings": "Conta poupança"
+      "savings": "Conta poupança",
+      "fixedIncome": "Renda fixa"
     },
     "created": "Conta adicionada com sucesso.",
     "updated": "Conta atualizada com sucesso.",
     "deleted": "Conta excluída com sucesso."
+  },
+  "rendaFixa": {
+    "title": "Renda fixa",
+    "listTitle": "Investimentos de renda fixa",
+    "description": "Consulte o saldo total de renda fixa.",
+    "total": "Saldo total de renda fixa",
+    "bank": "Banco",
+    "subtype": "Conta",
+    "amount": "Valor",
+    "updatedAt": "Atualizado em",
+    "add": "Nova renda fixa",
+    "edit": "Editar renda fixa",
+    "formDescription": "Informe o banco, o tipo da aplicação e o saldo atual.",
+    "applicationType": "Tipo de aplicação",
+    "created": "Renda fixa adicionada com sucesso.",
+    "updated": "Renda fixa atualizada com sucesso.",
+    "empty": "Ainda não há investimentos de renda fixa disponíveis.",
+    "retry": "Tentar novamente",
+    "deleteTitle": "Remover investimento",
+    "deleteConfirm": "Deseja realmente excluir {{name}} do banco {{bank}}?",
+    "deleted": "Aplicação excluída com sucesso.",
+    "subtypes": {
+      "TREASURY": "Tesouro"
+    }
   },
   "transactions": {
     "title": "Transações de cartão",

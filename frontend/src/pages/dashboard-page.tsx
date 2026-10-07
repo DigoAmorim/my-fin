@@ -9,6 +9,7 @@ import { listCreditCards } from '../lib/credit-card-api';
 import { purchaseTypeLabelKeys } from '../lib/transaction-labels';
 import { listPurchaseLimits } from '../lib/purchase-limit-api';
 import { listTransactions } from '../lib/transaction-api';
+import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
 import { createCurrencyFormatter } from '../lib/utils';
 import type { CreditCard } from '../types/credit-card';
 import type { PurchaseLimit } from '../types/purchase-limit';
@@ -31,9 +32,8 @@ type NetTotal = {
   amount: number;
 };
 
-function transactionNetAmount(transaction: Transaction): number {
-  const amount = Number(transaction.installmentAmount);
-  if (!Number.isFinite(amount)) return 0;
+function transactionNetAmount(transaction: Transaction): bigint {
+  const amount = toMinorUnits(transaction.installmentAmount);
   // Créditos reduzem o gasto líquido em todos os resumos e limites do painel.
   return transaction.transactionType === 'credit' ? -amount : amount;
 }
@@ -120,50 +120,55 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     return () => controller.abort();
   }, [t]);
 
-  const totalAmount = useMemo(
-    () => transactions.reduce((total, transaction) => total + transactionNetAmount(transaction), 0),
+  const totalAmountCents = useMemo(
+    () => transactions.reduce((total, transaction) => total + transactionNetAmount(transaction), 0n),
     [transactions],
   );
+  const totalAmount = minorUnitsToNumber(totalAmountCents);
   const totalsByCard = useMemo(() => {
-    const totals = new Map<number, number>();
+    const totals = new Map<number, bigint>();
     for (const transaction of transactions) {
       totals.set(
         transaction.creditCardId,
-        (totals.get(transaction.creditCardId) ?? 0) + transactionNetAmount(transaction),
+        (totals.get(transaction.creditCardId) ?? 0n) + transactionNetAmount(transaction),
       );
     }
 
     return cards
-      .map((card) => ({ key: String(card.id), name: card.name, amount: totals.get(card.id) ?? 0 }))
+      .map((card) => ({
+        key: String(card.id),
+        name: card.name,
+        amount: minorUnitsToNumber(totals.get(card.id) ?? 0n),
+      }))
       .sort((left, right) => right.amount - left.amount);
   }, [cards, transactions]);
   const totalsByDebtor = useMemo(() => {
-    const totals = new Map<string, number>();
+    const totals = new Map<string, bigint>();
     for (const transaction of transactions) {
       const debtor = transaction.debtor?.trim() || '';
       if (!debtor) continue;
-      totals.set(debtor, (totals.get(debtor) ?? 0) + transactionNetAmount(transaction));
+      totals.set(debtor, (totals.get(debtor) ?? 0n) + transactionNetAmount(transaction));
     }
 
     return [
       ...Array.from(totals, ([debtor, amount]) => ({
         key: debtor,
         name: debtor,
-        amount: Math.abs(amount),
+        amount: minorUnitsToNumber(amount < 0n ? -amount : amount),
       })),
       {
         key: 'rodrigo',
         name: t('dashboard.unassignedDebtor'),
-        amount: Math.abs(totalAmount),
+        amount: minorUnitsToNumber(totalAmountCents < 0n ? -totalAmountCents : totalAmountCents),
       },
     ].sort((left, right) => right.amount - left.amount);
-  }, [transactions, totalAmount, t]);
+  }, [transactions, totalAmountCents, t]);
   const usedByPurchaseType = useMemo(() => {
-    const totals = new Map<PurchaseType, number>(PURCHASE_TYPES.map((type) => [type, 0]));
+    const totals = new Map<PurchaseType, bigint>(PURCHASE_TYPES.map((type) => [type, 0n]));
     for (const transaction of transactions) {
       totals.set(
         transaction.purchaseType,
-        (totals.get(transaction.purchaseType) ?? 0) + transactionNetAmount(transaction),
+        (totals.get(transaction.purchaseType) ?? 0n) + transactionNetAmount(transaction),
       );
     }
     return totals;
@@ -171,7 +176,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const dailySpendAvailable = useMemo(() => {
     const dayOfMonth = currentDate.getDate();
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-    const limitByType = new Map(limits.map((limit) => [limit.purchaseType, Number(limit.amount)]));
+    const limitByType = new Map(limits.map((limit) => [limit.purchaseType, toMinorUnits(limit.amount)]));
     const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     const today = `${currentMonth}-${String(dayOfMonth).padStart(2, '0')}`;
     const fortnightSpent = (type: PurchaseType) => transactions
@@ -180,22 +185,22 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         && transaction.date.startsWith(`${currentMonth}-`)
         && transaction.date <= today
       ))
-      .reduce((total, transaction) => total + transactionNetAmount(transaction), 0);
+      .reduce((total, transaction) => total + transactionNetAmount(transaction), 0n);
     // Replica a regra da planilha: divide o saldo da quinzena pelos dias restantes nela.
     const firstFortnightRemaining =
-      (limitByType.get('first_fortnight') ?? 0)
+      (limitByType.get('first_fortnight') ?? 0n)
       - fortnightSpent('first_fortnight');
     const secondFortnightRemaining =
-      (limitByType.get('second_fortnight') ?? 0)
+      (limitByType.get('second_fortnight') ?? 0n)
       - fortnightSpent('second_fortnight');
 
     if (dayOfMonth < 15) {
-      return firstFortnightRemaining / (15 - dayOfMonth);
+      return minorUnitsToNumber(firstFortnightRemaining) / (15 - dayOfMonth);
     }
     if (dayOfMonth < 28) {
-      return secondFortnightRemaining / (28 - dayOfMonth);
+      return minorUnitsToNumber(secondFortnightRemaining) / (28 - dayOfMonth);
     }
-    return firstFortnightRemaining / (daysInMonth - dayOfMonth + 15);
+    return minorUnitsToNumber(firstFortnightRemaining) / (daysInMonth - dayOfMonth + 15);
   }, [currentDate, limits, transactions]);
   const greeting = t(getGreetingKey());
 
@@ -270,7 +275,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 ) : (
                   <ul className="m-0 max-h-52 list-none space-y-3 overflow-y-auto p-0">
                     {limits.map((limit) => {
-                      const used = usedByPurchaseType.get(limit.purchaseType) ?? 0;
+                      const used = minorUnitsToNumber(usedByPurchaseType.get(limit.purchaseType) ?? 0n);
                       const amount = Number(limit.amount);
                       const percentage = amount > 0 ? Math.max(0, (used / amount) * 100) : 0;
                       const label = t(purchaseTypeLabelKeys[limit.purchaseType]);

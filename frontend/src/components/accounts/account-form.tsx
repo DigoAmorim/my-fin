@@ -33,13 +33,15 @@ type AccountFormProps = {
   isSaving: boolean;
   values: AccountFormValues;
   validationError: string;
+  accountTypeFilter?: AccountType;
+  accountNumberLabel?: string;
   onValuesChange: (values: AccountFormValues) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
 };
 
 function isAccountType(value: string): value is AccountType {
-  return value === 'checking' || value === 'savings';
+  return value === 'checking' || value === 'savings' || value === 'fixed_income';
 }
 
 export function AccountForm({
@@ -48,6 +50,8 @@ export function AccountForm({
   isSaving,
   values,
   validationError,
+  accountTypeFilter,
+  accountNumberLabel,
   onValuesChange,
   onSubmit,
   onCancel,
@@ -58,8 +62,8 @@ export function AccountForm({
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) onCancel(); }}>
       <DialogContent className="gap-0 rounded-xl p-0 shadow-xl sm:max-w-[480px]">
         <DialogHeader className="px-[1.4rem] pb-[0.8rem] pr-12 pt-5">
-          <DialogTitle>{t(isEditing ? 'accounts.edit' : 'accounts.add')}</DialogTitle>
-          <DialogDescription>{t('accounts.formDescription')}</DialogDescription>
+          <DialogTitle>{t(accountTypeFilter ? (isEditing ? 'rendaFixa.edit' : 'rendaFixa.add') : (isEditing ? 'accounts.edit' : 'accounts.add'))}</DialogTitle>
+          <DialogDescription>{t(accountTypeFilter ? 'rendaFixa.formDescription' : 'accounts.formDescription')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="flex flex-col gap-4 px-[1.4rem] pb-[1.4rem] pt-3">
@@ -77,7 +81,7 @@ export function AccountForm({
           </div>
 
           <div className="flex flex-col gap-[0.45rem]">
-            <Label htmlFor="account-number">{t('accounts.accountNumber')}</Label>
+            <Label htmlFor="account-number">{t(accountNumberLabel ?? 'accounts.accountNumber')}</Label>
             <Input
               id="account-number"
               value={values.accountNumber}
@@ -88,24 +92,34 @@ export function AccountForm({
             />
           </div>
 
-          <div className="flex flex-col gap-[0.45rem]">
-            <Label htmlFor="account-type">{t('accounts.accountType')}</Label>
-            <Select
-              value={values.accountType}
-              onValueChange={(value) => {
-                if (isAccountType(value)) onValuesChange({ ...values, accountType: value });
-              }}
-              disabled={isSaving}
-            >
-              <SelectTrigger id="account-type" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="checking">{t('accounts.types.checking')}</SelectItem>
-                <SelectItem value="savings">{t('accounts.types.savings')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {accountTypeFilter === 'fixed_income' ? null : accountTypeFilter ? (
+            <div className="flex flex-col gap-[0.45rem]">
+              <Label>{t('accounts.accountType')}</Label>
+              <p className="m-0 rounded-md border border-input bg-muted/20 px-3 py-2 text-sm text-foreground">
+                {t(`accounts.types.${accountTypeFilter}`)}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-[0.45rem]">
+              <Label htmlFor="account-type">{t('accounts.accountType')}</Label>
+              <Select
+                value={values.accountType}
+                onValueChange={(value) => {
+                  if (isAccountType(value)) onValuesChange({ ...values, accountType: value });
+                }}
+                disabled={isSaving}
+              >
+                <SelectTrigger id="account-type" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="checking">{t('accounts.types.checking')}</SelectItem>
+                  <SelectItem value="savings">{t('accounts.types.savings')}</SelectItem>
+                  <SelectItem value="fixed_income">{t('accounts.types.fixedIncome')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex flex-col gap-[0.45rem]">
             <Label htmlFor="account-balance">{t('accounts.balance')}</Label>

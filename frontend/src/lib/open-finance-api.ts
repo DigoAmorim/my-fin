@@ -1,7 +1,10 @@
 import { apiRequest } from './api-client';
 import type { OpenFinanceBank, OpenFinanceBankInput } from '../types/open-finance';
 
-export type AccountSyncResult = { synchronizedAccounts: number };
+export type AccountSyncResult = {
+  synchronizedAccounts: number;
+  synchronizedInvestments: number;
+};
 
 export function synchronizeOpenFinanceAccounts(): Promise<AccountSyncResult> {
   return apiRequest('/api/open-finance/sync-accounts', {

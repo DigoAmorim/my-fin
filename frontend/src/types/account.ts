@@ -1,5 +1,5 @@
-export type AccountType = 'checking' | 'savings';
-export type AccountSource = 'manual' | 'pluggy';
+export type AccountType = 'checking' | 'savings' | 'fixed_income';
+export type AccountSource = 'manual' | 'pluggy' | 'pluggy_investment';
 
 export type Account = {
   id: number;
