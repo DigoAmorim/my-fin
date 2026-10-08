@@ -1,19 +1,36 @@
-import { CreditCard as CreditCardIcon, Gauge, LayoutDashboard, ReceiptText } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import {
+  Banknote,
+  ChartNoAxesCombined,
+  CreditCard as CreditCardIcon,
+  Gauge,
+  HandCoins,
+  LayoutDashboard,
+  ReceiptText,
+  Wallet,
+} from 'lucide-react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppLayout, type AppPage } from '../components/layout/app-layout';
 import { ContentSection } from '../components/layout/content-section';
 import { PageContainer } from '../components/layout/page-container';
 import { PageHeader } from '../components/layout/page-header';
 import { listCreditCards } from '../lib/credit-card-api';
+import { listAccounts } from '../lib/account-api';
+import { getInvestmentSummary } from '../lib/investment-api';
+import { getVariableIncomeSummary } from '../lib/variable-income-api';
 import { purchaseTypeLabelKeys } from '../lib/transaction-labels';
 import { listPurchaseLimits } from '../lib/purchase-limit-api';
 import { listTransactions } from '../lib/transaction-api';
-import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
+import { listPayments } from '../lib/payment-api';
+import { minorUnitsToNumber, sumMinorUnits, toMinorUnits } from '../lib/money';
 import { createCurrencyFormatter } from '../lib/utils';
 import type { CreditCard } from '../types/credit-card';
+import type { Account } from '../types/account';
+import type { InvestmentSummary } from '../types/investment';
 import type { PurchaseLimit } from '../types/purchase-limit';
 import type { PurchaseType, Transaction } from '../types/transaction';
+import type { Payment } from '../types/payment';
+import type { VariableIncomeSummary } from '../types/variable-income';
 
 const PURCHASE_TYPES: PurchaseType[] = [
   'first_fortnight',
@@ -30,6 +47,25 @@ type NetTotal = {
   key: string;
   name: string;
   amount: number;
+};
+
+type AssetGroup = {
+  key: string;
+  label: string;
+  amountCents: bigint;
+  color: string;
+  icon: React.ReactNode;
+};
+
+type AssetGroupSegment = AssetGroup & {
+  percentage: number;
+  endPercentage: number;
+};
+
+type ActiveAssetTooltip = {
+  group: AssetGroupSegment;
+  x: number;
+  y: number;
 };
 
 function transactionNetAmount(transaction: Transaction): bigint {
@@ -87,7 +123,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [currentDate] = useState(() => new Date());
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [limits, setLimits] = useState<PurchaseLimit[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [fixedIncome, setFixedIncome] = useState<InvestmentSummary | null>(null);
+  const [variableIncome, setVariableIncome] = useState<VariableIncomeSummary | null>(null);
+  const [activeAssetTooltip, setActiveAssetTooltip] = useState<ActiveAssetTooltip | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
@@ -102,13 +143,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     void Promise.all([
       listCreditCards(controller.signal),
       listTransactions(controller.signal),
+      listPayments(controller.signal),
       listPurchaseLimits(controller.signal),
+      listAccounts(controller.signal),
+      getInvestmentSummary(controller.signal),
+      getVariableIncomeSummary(controller.signal),
     ])
-      .then(([nextCards, nextTransactions, nextLimits]) => {
+      .then(([nextCards, nextTransactions, nextPayments, nextLimits, nextAccounts, nextFixedIncome, nextVariableIncome]) => {
         if (controller.signal.aborted) return;
         setCards(nextCards);
         setTransactions(nextTransactions);
+        setPayments(nextPayments);
         setLimits(nextLimits);
+        setAccounts(nextAccounts);
+        setFixedIncome(nextFixedIncome);
+        setVariableIncome(nextVariableIncome);
         setIsLoading(false);
       })
       .catch((error: unknown) => {
@@ -125,6 +174,136 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     [transactions],
   );
   const totalAmount = minorUnitsToNumber(totalAmountCents);
+  const today = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+  const futurePaymentsCents = useMemo(
+    () => sumMinorUnits(
+      payments
+        .filter((payment) => payment.date !== null && payment.date >= today)
+        .map((payment) => payment.amount),
+    ),
+    [payments, today],
+  );
+  const assetGroups = useMemo<AssetGroup[]>(() => {
+    const eligibleAccounts = accounts.filter((account) => (
+      account.accountType === 'checking' || account.accountType === 'savings'
+    ));
+    const futurePaymentsByAccount = new Map<number, bigint>();
+    for (const payment of payments) {
+      if (payment.date === null || payment.date < today) continue;
+      futurePaymentsByAccount.set(
+        payment.accountId,
+        (futurePaymentsByAccount.get(payment.accountId) ?? 0n) + toMinorUnits(payment.amount),
+      );
+    }
+    const projectedAccountBalanceCents = eligibleAccounts.reduce((total, account) => (
+      total
+      + toMinorUnits(account.balance)
+      - (futurePaymentsByAccount.get(account.id) ?? 0n)
+    ), 0n);
+    const fixedIncomeBySubtype = new Map<string, bigint>();
+    for (const investment of fixedIncome?.investments ?? []) {
+      fixedIncomeBySubtype.set(
+        investment.subtype,
+        (fixedIncomeBySubtype.get(investment.subtype) ?? 0n) + toMinorUnits(investment.amount),
+      );
+    }
+    const fixedIncomeColors = ['#7c3aed', '#0891b2', '#c026d3', '#4f46e5', '#a16207'];
+    const fixedIncomeGroups = [...fixedIncomeBySubtype.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([subtype, amountCents], index): AssetGroup => ({
+        key: `fixedIncome-${subtype}`,
+        label: t(`rendaFixa.subtypes.${subtype}`, { defaultValue: subtype }),
+        amountCents,
+        color: fixedIncomeColors[index % fixedIncomeColors.length],
+        icon: <Banknote size={17} />,
+      }));
+
+    return [
+      {
+        key: 'accounts',
+        label: t('dashboard.accounts'),
+        amountCents: projectedAccountBalanceCents,
+        color: '#3b82f6',
+        icon: <Wallet size={17} />,
+      },
+      ...fixedIncomeGroups,
+      {
+        key: 'variableIncome',
+        label: t('dashboard.variableIncome'),
+        amountCents: toMinorUnits(variableIncome?.total ?? '0'),
+        color: '#10b981',
+        icon: <ChartNoAxesCombined size={17} />,
+      },
+    ];
+  }, [accounts, payments, today, fixedIncome, variableIncome, t]);
+  const totalAssetCents = useMemo(
+    () => assetGroups.reduce((total, group) => total + group.amountCents, 0n),
+    [assetGroups],
+  );
+  const totalAssetAmount = minorUnitsToNumber(totalAssetCents);
+  const formattedTotalAssets = formatCurrency(totalAssetAmount);
+  const totalAssetsFontSize = Math.max(11, Math.min(20, 230 / formattedTotalAssets.length));
+  const absoluteAssetWeight = assetGroups.reduce(
+    (total, group) => total + (group.amountCents < 0n ? -group.amountCents : group.amountCents),
+    0n,
+  );
+  const assetGroupSegments = useMemo<AssetGroupSegment[]>(() => {
+    if (absoluteAssetWeight === 0n) {
+      return assetGroups.map((group) => ({ ...group, percentage: 0, endPercentage: 0 }));
+    }
+    let endPercentage = 0;
+    return assetGroups.map((group) => {
+      const weight = group.amountCents < 0n ? -group.amountCents : group.amountCents;
+      const percentage = Number((weight * 1_000_000n) / absoluteAssetWeight) / 10_000;
+      endPercentage += percentage;
+      return { ...group, percentage, endPercentage };
+    });
+  }, [absoluteAssetWeight, assetGroups]);
+  const chartGradient = useMemo(() => {
+    if (absoluteAssetWeight === 0n) return 'conic-gradient(#e5e7eb 0% 100%)';
+    let startPercentage = 0;
+    const segments = assetGroupSegments.map((segment, index) => {
+      const start = startPercentage;
+      const end = index === assetGroupSegments.length - 1 ? 100 : segment.endPercentage;
+      startPercentage = end;
+      return `${segment.color} ${start}% ${end}%`;
+    });
+    return `conic-gradient(${segments.join(', ')})`;
+  }, [absoluteAssetWeight, assetGroupSegments]);
+  function handleAssetChartMouseMove(event: MouseEvent<HTMLDivElement>) {
+    if (absoluteAssetWeight === 0n) {
+      setActiveAssetTooltip(null);
+      return;
+    }
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const centerX = bounds.width / 2;
+    const centerY = bounds.height / 2;
+    const offsetX = event.clientX - bounds.left - centerX;
+    const offsetY = event.clientY - bounds.top - centerY;
+    const radius = Math.sqrt(offsetX ** 2 + offsetY ** 2);
+    const chartRadius = Math.min(bounds.width, bounds.height) / 2;
+    if (radius < chartRadius * 0.8 || radius > chartRadius) {
+      setActiveAssetTooltip(null);
+      return;
+    }
+
+    const angle = (Math.atan2(offsetY, offsetX) * 180 / Math.PI + 450) % 360;
+    const percentageAtPointer = angle / 3.6;
+    const group = assetGroupSegments.find((segment) => (
+      segment.percentage > 0 && percentageAtPointer < segment.endPercentage
+    )) ?? assetGroupSegments.at(-1);
+    if (!group) {
+      setActiveAssetTooltip(null);
+      return;
+    }
+
+    setActiveAssetTooltip({
+      group,
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+    });
+  }
   const totalsByCard = useMemo(() => {
     const totals = new Map<number, bigint>();
     for (const transaction of transactions) {
@@ -212,12 +391,143 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       <PageContainer>
         <PageHeader section={greeting} title={t('dashboard.title')} />
 
+        {!loadError && !isLoading && (
+          <ContentSection className="order-3">
+            <div className="border-b border-border px-5 py-4 sm:px-6">
+              <h2 className="m-0 flex items-center gap-2 text-sm font-semibold text-foreground">
+                <ChartNoAxesCombined size={17} className="text-primary" />
+                {t('dashboard.assetsOverview')}
+              </h2>
+              <p className="mb-0 mt-1 text-xs text-muted-foreground">
+                {t('dashboard.assetsOverviewDescription')}
+              </p>
+            </div>
+            <div className="grid items-center gap-6 px-5 py-5 sm:px-6 lg:grid-cols-[minmax(220px,0.8fr)_1.2fr] lg:gap-10">
+              <div className="flex justify-center">
+                <div
+                  className="relative grid size-52 place-items-center rounded-full p-5 shadow-inner"
+                  style={{ background: chartGradient }}
+                  role="img"
+                  aria-label={t('dashboard.assetsChartLabel', { amount: formatCurrency(totalAssetAmount) })}
+                  onMouseMove={handleAssetChartMouseMove}
+                  onMouseLeave={() => setActiveAssetTooltip(null)}
+                >
+                  {activeAssetTooltip && (
+                    <div
+                      className="pointer-events-none absolute z-10 min-w-40 -translate-x-1/2 -translate-y-[calc(100%+10px)] rounded-lg border border-border bg-popover px-3 py-2 text-popover-foreground shadow-lg"
+                      style={{ left: activeAssetTooltip.x, top: activeAssetTooltip.y }}
+                      role="status"
+                    >
+                      <div className="flex items-center gap-2 text-xs font-semibold">
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: activeAssetTooltip.group.color }}
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{activeAssetTooltip.group.label}</span>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between gap-3 text-xs">
+                        <span className="tabular-nums text-muted-foreground">
+                          {new Intl.NumberFormat(locale, { maximumFractionDigits: 2 })
+                            .format(activeAssetTooltip.group.percentage)}%
+                        </span>
+                        <span className="font-semibold tabular-nums">
+                          {formatCurrency(minorUnitsToNumber(activeAssetTooltip.group.amountCents))}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="grid size-full content-center justify-items-center rounded-full bg-card text-center shadow-sm">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      {t('dashboard.assetsTotal')}
+                    </span>
+                    <span
+                      className="mt-1 w-full whitespace-nowrap px-1 font-bold tabular-nums tracking-tight text-foreground"
+                      style={{ fontSize: `${totalAssetsFontSize}px` }}
+                    >
+                      {formattedTotalAssets}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <ul className="m-0 list-none space-y-5 p-0">
+                {assetGroups.map((group) => {
+                  const weight = group.amountCents < 0n ? -group.amountCents : group.amountCents;
+                  const percentage = absoluteAssetWeight > 0n
+                    ? Number((weight * 10000n) / absoluteAssetWeight) / 100
+                    : 0;
+                  return (
+                    <li key={group.key}>
+                      <div className="mb-2 flex items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <span
+                            className="grid size-9 shrink-0 place-items-center rounded-lg"
+                            style={{ color: group.color, backgroundColor: `${group.color}1a` }}
+                            aria-hidden="true"
+                          >
+                            {group.icon}
+                          </span>
+                          <span className="truncate text-sm font-medium text-foreground">{group.label}</span>
+                        </div>
+                        <span className="shrink-0 text-right text-sm font-semibold tabular-nums text-foreground">
+                          {formatCurrency(minorUnitsToNumber(group.amountCents))}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 pl-[2.875rem]">
+                        <div
+                          className="h-2 flex-1 overflow-hidden rounded-full bg-muted"
+                          role="progressbar"
+                          aria-label={t('dashboard.assetShare', { name: group.label })}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={Math.round(percentage)}
+                        >
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${percentage}%`,
+                              backgroundColor: group.color,
+                            }}
+                          />
+                        </div>
+                        <span className="w-12 text-right text-xs font-semibold tabular-nums text-muted-foreground">
+                          {new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(percentage)}%
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </ContentSection>
+        )}
+
+        {!loadError && !isLoading && futurePaymentsCents > 0n && (
+          <ContentSection className="order-2 border-amber-200 bg-amber-50">
+            <div className="flex items-center justify-between gap-4 px-5 py-2.5 sm:px-6">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber-100 text-amber-700">
+                  <HandCoins size={17} />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="m-0 truncate text-sm font-semibold text-amber-950">
+                    {t('dashboard.futurePayments')}
+                  </h2>
+                </div>
+              </div>
+              <span className="shrink-0 text-right text-sm font-bold tabular-nums text-amber-900 sm:text-base">
+                {formatCurrency(minorUnitsToNumber(futurePaymentsCents))}
+              </span>
+            </div>
+          </ContentSection>
+        )}
+
         {loadError ? (
-          <ContentSection>
+          <ContentSection className="order-1">
             <p className="m-0 px-4 py-8 text-center text-sm text-destructive" role="alert">{loadError}</p>
           </ContentSection>
         ) : isLoading ? (
-          <ContentSection>
+          <ContentSection className="order-1">
             <div className="grid animate-pulse gap-5 p-5 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: 4 }, (_, index) => (
                 <div key={index} className="space-y-3">
@@ -229,7 +539,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </div>
           </ContentSection>
         ) : (
-          <ContentSection>
+          <ContentSection className="order-1">
             <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 xl:grid-cols-[1.05fr_1fr_1fr_1.2fr]">
               <section className="bg-card px-5 py-5 sm:px-6">
                 <h2 className="mb-2 mt-0 flex items-center gap-2 text-sm font-semibold text-muted-foreground">

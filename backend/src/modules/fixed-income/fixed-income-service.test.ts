@@ -53,3 +53,22 @@ test('groups fixed income positions by subtype before persistence', () => {
     { id: 'LCI', subtype: 'LCI', amount: '50.00', updatedAt: '2025-01-01T00:00:00.000Z' },
   ]);
 });
+
+test('subtracts each investment tax before grouping by subtype', () => {
+  const positions = parseFixedIncomePositions({
+    results: [
+      { id: '1', type: 'FIXED_INCOME', subtype: 'CDB', amount: 100.50, taxes: 5.25 },
+      { id: '2', type: 'FIXED_INCOME', subtype: 'CDB', amount: '60.00', taxes: '10.00' },
+      { id: '3', type: 'FIXED_INCOME', subtype: 'LCI', amount: '50.00' },
+    ],
+  });
+
+  assert.deepEqual(positions.map(({ amount }) => amount), ['95.25', '50.00', '50.00']);
+  assert.deepEqual(
+    groupFixedIncomePositions(positions).map(({ subtype, amount }) => ({ subtype, amount })),
+    [
+      { subtype: 'CDB', amount: '145.25' },
+      { subtype: 'LCI', amount: '50.00' },
+    ],
+  );
+});

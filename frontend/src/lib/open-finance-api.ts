@@ -4,6 +4,7 @@ import type { OpenFinanceBank, OpenFinanceBankInput } from '../types/open-financ
 export type AccountSyncResult = {
   synchronizedAccounts: number;
   synchronizedInvestments: number;
+  synchronizedVariableInvestments: number;
 };
 
 export function synchronizeOpenFinanceAccounts(): Promise<AccountSyncResult> {

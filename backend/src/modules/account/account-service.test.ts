@@ -89,6 +89,38 @@ test('keeps only enabled bank account types from Pluggy', () => {
   }]);
 });
 
+test('adds reserved checking-account balances and leaves balances unchanged when none exist', () => {
+  const bank = {
+    id: 1,
+    bank_name: 'Banco Exemplo',
+    checking_account: true,
+    savings_account: false,
+    fixed_income: false,
+    pluggy_item_id: 'item-123',
+  };
+  const account = {
+    id: 'checking-1',
+    subtype: 'CHECKING_ACCOUNT',
+    number: '00123-4',
+    balance: 173726.51,
+    updatedAt: '2026-10-05T10:30:00.000Z',
+  };
+
+  assert.equal(parsePluggyAccounts({
+    results: [{
+      ...account,
+      bankData: {
+        hasReservedBalance: true,
+        reservedBalances: [
+          { availableAmounts: [{ amount: 0, currencyCode: 'BRL' }] },
+          { availableAmounts: [{ amount: 5883.81, currencyCode: 'BRL' }] },
+        ],
+      },
+    }],
+  }, bank)[0].balance, '179610.32');
+  assert.equal(parsePluggyAccounts({ results: [account] }, bank)[0].balance, '173726.51');
+});
+
 test('rejects incomplete account data for an enabled Pluggy account type', () => {
   assert.throws(
     () => parsePluggyAccounts({

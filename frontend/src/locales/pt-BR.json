@@ -11,7 +11,9 @@
     "openFinance": "Open Finance",
     "accounts": "Contas",
     "fixedIncome": "Renda fixa",
+    "variableIncome": "Renda variável",
     "transactions": "Transações",
+    "payments": "Pagamentos",
     "invoices": "Faturas",
     "groupFeatures": "Funcionalidades",
     "groupAnalysis": "Análise",
@@ -59,7 +61,39 @@
     "emptyDebtors": "Nenhum devedor informado.",
     "emptyLimits": "Cadastre limites para acompanhar o consumo.",
     "unassignedDebtor": "Rodrigo",
-    "dailySpendAvailable": "Disponível para gastar por dia"
+    "dailySpendAvailable": "Disponível para gastar por dia",
+    "assetsOverview": "Patrimônio por categoria",
+    "assetsOverviewDescription": "Veja como seu patrimônio está distribuído entre contas e investimentos.",
+    "assetsTotal": "Total consolidado",
+    "assetsChartLabel": "Distribuição do patrimônio. Total: {{amount}}",
+    "assetShare": "Participação de {{name}} no patrimônio",
+    "accounts": "Contas",
+    "fixedIncome": "Renda fixa",
+    "variableIncome": "Renda variável",
+    "futurePayments": "Pagamentos futuros"
+  },
+  "payments": {
+    "title": "Pagamentos",
+    "listTitle": "Pagamentos cadastrados",
+    "description": "Organize os pagamentos previstos para o mês.",
+    "add": "Novo pagamento",
+    "edit": "Editar pagamento",
+    "formDescription": "Informe o nome, o valor, a data e a conta de origem do pagamento.",
+    "name": "Nome do pagamento",
+    "amount": "Valor do pagamento",
+    "date": "Data do pagamento",
+    "noDate": "Sem data",
+    "account": "Conta",
+    "selectAccount": "Selecione uma conta",
+    "empty": "Ainda não há pagamentos cadastrados.",
+    "noAccounts": "Cadastre uma conta corrente ou poupança antes de adicionar pagamentos.",
+    "openAccounts": "Ir para contas",
+    "retry": "Tentar novamente",
+    "deleteTitle": "Excluir pagamento",
+    "deleteConfirm": "Deseja realmente excluir o pagamento {{name}}?",
+    "created": "Pagamento cadastrado com sucesso.",
+    "updated": "Pagamento atualizado com sucesso.",
+    "deleted": "Pagamento excluído com sucesso."
   },
   "creditCards": {
     "title": "Cartões de crédito",
@@ -170,7 +204,7 @@
     "deleted": "Banco removido com sucesso.",
     "synchronize": "Atualizar dados",
     "synchronizing": "Atualizando...",
-    "syncSuccess": "{{accounts}} conta(s) e {{investments}} investimento(s) sincronizado(s) com sucesso."
+    "syncSuccess": "{{accounts}} conta(s), {{investments}} investimento(s) de renda fixa e {{variableInvestments}} investimento(s) de renda variável sincronizado(s) com sucesso."
   },
   "accounts": {
     "title": "Contas",
@@ -221,6 +255,23 @@
     "subtypes": {
       "TREASURY": "Tesouro"
     }
+  },
+  "rendaVariavel": {
+    "title": "Renda variável",
+    "listTitle": "Investimentos de renda variável",
+    "description": "Consulte suas ações, quantidades e valores atuais.",
+    "total": "Valor total de renda variável",
+    "asset": "Ativo",
+    "unitValue": "Valor da cota",
+    "quantity": "Quantidade",
+    "amount": "Valor total",
+    "actions": "Ações",
+    "assetLogo": "Ícone do ativo {{name}}",
+    "deleteAsset": "Excluir ativo {{name}}",
+    "deleteTitle": "Excluir ativo",
+    "deleteConfirm": "Deseja realmente excluir o ativo {{name}}?",
+    "empty": "Ainda não há investimentos de renda variável disponíveis.",
+    "retry": "Tentar novamente"
   },
   "transactions": {
     "title": "Transações de cartão",

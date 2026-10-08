@@ -72,6 +72,17 @@ const ptBRMessages = {
   transactionPaymentSelectionInvalid: 'A seleção de transações contém ids inválidos ou repetidos.',
   transactionPaymentCardMismatch: 'Todas as transações selecionadas devem pertencer ao cartão escolhido.',
   transactionAlreadyPaidForMonth: 'Uma ou mais transações já foram pagas neste mês.',
+  paymentNotFound: 'Pagamento não encontrado.',
+  paymentIdGenerated: 'O id do pagamento é gerado pelo sistema e não pode ser informado.',
+  paymentIdImmutable: 'O id do pagamento não pode ser alterado.',
+  paymentNameRequired: 'Informe o nome do pagamento.',
+  paymentNameMaxLength: 'O nome do pagamento deve ter no máximo 100 caracteres.',
+  paymentAmountPositive: 'O valor do pagamento deve ser maior que zero.',
+  paymentAmountInvalid: 'Informe um valor decimal válido para o pagamento.',
+  paymentAmountMaxDecimals: 'O valor do pagamento deve ter no máximo duas casas decimais.',
+  paymentAmountMaxValue: 'O valor do pagamento é muito alto.',
+  paymentDateISO: 'A data do pagamento deve ser válida e estar no formato AAAA-MM-DD.',
+  paymentAccountInvalid: 'Selecione uma conta corrente ou poupança válida.',
 } as const;
 
 export type BackendLocale = 'pt-BR' | 'en';
@@ -149,6 +160,17 @@ const enMessages: Record<ApiMessageKey, string> = {
   transactionPaymentSelectionInvalid: 'The transaction selection contains invalid or duplicate ids.',
   transactionPaymentCardMismatch: 'All selected transactions must belong to the chosen card.',
   transactionAlreadyPaidForMonth: 'One or more transactions have already been paid this month.',
+  paymentNotFound: 'Payment not found.',
+  paymentIdGenerated: 'Payment id is generated and cannot be set.',
+  paymentIdImmutable: 'Payment id cannot be changed.',
+  paymentNameRequired: 'Enter the payment name.',
+  paymentNameMaxLength: 'Payment name must have at most 100 characters.',
+  paymentAmountPositive: 'Payment amount must be greater than zero.',
+  paymentAmountInvalid: 'Enter a valid decimal payment amount.',
+  paymentAmountMaxDecimals: 'Payment amount must have at most two decimal places.',
+  paymentAmountMaxValue: 'Payment amount is too high.',
+  paymentDateISO: 'Payment date must be valid and use the YYYY-MM-DD format.',
+  paymentAccountInvalid: 'Select a valid checking or savings account.',
 };
 
 const translations: Record<BackendLocale, Record<ApiMessageKey, string>> = {

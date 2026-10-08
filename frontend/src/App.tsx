@@ -11,6 +11,9 @@ const AccountsPage = lazy(() =>
 const FixedIncomePage = lazy(() =>
   import('./pages/fixed-income-page').then(({ FixedIncomePage }) => ({ default: FixedIncomePage })),
 );
+const VariableIncomePage = lazy(() =>
+  import('./pages/variable-income-page').then(({ VariableIncomePage }) => ({ default: VariableIncomePage })),
+);
 const CreditCardsPage = lazy(() =>
   import('./pages/credit-cards-page').then(({ CreditCardsPage }) => ({ default: CreditCardsPage })),
 );
@@ -25,6 +28,9 @@ const OpenFinancePage = lazy(() =>
 );
 const TransactionsPage = lazy(() =>
   import('./pages/transactions-page').then(({ TransactionsPage }) => ({ default: TransactionsPage })),
+);
+const PaymentsPage = lazy(() =>
+  import('./pages/payments-page').then(({ PaymentsPage }) => ({ default: PaymentsPage })),
 );
 
 function PageLoading() {
@@ -48,8 +54,12 @@ function renderPage(page: AppPage, onNavigate: (nextPage: AppPage) => void) {
       return <AccountsPage onNavigate={onNavigate} />;
     case 'fixedIncome':
       return <FixedIncomePage onNavigate={onNavigate} />;
+    case 'variableIncome':
+      return <VariableIncomePage onNavigate={onNavigate} />;
     case 'transactions':
       return <TransactionsPage onNavigate={onNavigate} />;
+    case 'payments':
+      return <PaymentsPage onNavigate={onNavigate} />;
     case 'invoices':
       return <InvoicesPage onNavigate={onNavigate} />;
     case 'limits':

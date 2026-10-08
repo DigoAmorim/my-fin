@@ -156,6 +156,7 @@ export function OpenFinancePage({ onNavigate }: OpenFinancePageProps) {
       toast.success(t('openFinance.syncSuccess', {
         accounts: result.synchronizedAccounts,
         investments: result.synchronizedInvestments,
+        variableInvestments: result.synchronizedVariableInvestments,
       }));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('common.error'));

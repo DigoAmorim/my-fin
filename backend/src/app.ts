@@ -6,8 +6,10 @@ import { accountRouter } from './modules/account/account-routes';
 import { creditCardRouter } from './modules/credit-card/credit-card-routes';
 import { fixedIncomeRouter } from './modules/fixed-income/fixed-income-routes';
 import { openFinanceRouter } from './modules/open-finance/open-finance-routes';
+import { paymentRouter } from './modules/payment/payment-routes';
 import { purchaseLimitRouter } from './modules/purchase-limit/purchase-limit-routes';
 import { transactionRouter } from './modules/transaction/transaction-routes';
+import { variableIncomeRouter } from './modules/variable-income/variable-income-routes';
 import { healthRouter } from './routes/health';
 
 export const app = express();
@@ -32,7 +34,9 @@ app.use('/api/health', healthRouter);
 app.use('/api/credit-cards', creditCardRouter);
 app.use('/api/accounts', accountRouter);
 app.use('/api/investments', fixedIncomeRouter);
+app.use('/api/variable-investments', variableIncomeRouter);
 app.use('/api/open-finance', openFinanceRouter);
+app.use('/api/payments', paymentRouter);
 app.use('/api/purchase-limits', purchaseLimitRouter);
 // Todas as rotas de compras/transacoes compartilham este prefixo.
 app.use('/api/transactions', transactionRouter);

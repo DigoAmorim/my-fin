@@ -82,7 +82,57 @@ type PluggyAccountPayload = {
   subtype?: unknown;
   balance?: unknown;
   updatedAt?: unknown;
+  bankData?: unknown;
 };
+
+function parseBalanceCents(value: unknown): number | null {
+  const text = typeof value === 'number' && Number.isFinite(value)
+    ? String(value)
+    : typeof value === 'string'
+      ? value.trim()
+      : '';
+  if (!/^-?\d+(?:\.\d{1,2})?$/.test(text)) return null;
+
+  const negative = text.startsWith('-');
+  const [whole, fraction = ''] = (negative ? text.slice(1) : text).split('.');
+  const cents = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
+  return Number.isSafeInteger(cents) ? (negative ? -cents : cents) : null;
+}
+
+function getReservedBalanceCents(account: PluggyAccountPayload): number {
+  if (account.bankData === undefined || account.bankData === null) return 0;
+  if (typeof account.bankData !== 'object' || Array.isArray(account.bankData)) {
+    throw new ApiError(502, 'pluggyResponseInvalid');
+  }
+
+  const bankData = account.bankData as Record<string, unknown>;
+  const reservedBalances = bankData.reservedBalances;
+  if (reservedBalances === undefined || reservedBalances === null) return 0;
+  if (!Array.isArray(reservedBalances)) throw new ApiError(502, 'pluggyResponseInvalid');
+
+  let totalCents = 0;
+  for (const reservedBalance of reservedBalances) {
+    if (typeof reservedBalance !== 'object' || reservedBalance === null || Array.isArray(reservedBalance)) {
+      throw new ApiError(502, 'pluggyResponseInvalid');
+    }
+
+    const availableAmounts = (reservedBalance as Record<string, unknown>).availableAmounts;
+    if (availableAmounts === undefined || availableAmounts === null) continue;
+    if (!Array.isArray(availableAmounts)) throw new ApiError(502, 'pluggyResponseInvalid');
+
+    for (const availableAmount of availableAmounts) {
+      if (typeof availableAmount !== 'object' || availableAmount === null || Array.isArray(availableAmount)) {
+        throw new ApiError(502, 'pluggyResponseInvalid');
+      }
+      const amountCents = parseBalanceCents((availableAmount as Record<string, unknown>).amount);
+      if (amountCents === null) throw new ApiError(502, 'pluggyResponseInvalid');
+      totalCents += amountCents;
+      if (!Number.isSafeInteger(totalCents)) throw new ApiError(502, 'pluggyResponseInvalid');
+    }
+  }
+
+  return totalCents;
+}
 
 export function parsePluggyAccounts(input: unknown, bank: repository.OpenFinanceBankRow): PluggyAccount[] {
   const body = typeof input === 'object' && input !== null && !Array.isArray(input)
@@ -110,7 +160,7 @@ export function parsePluggyAccounts(input: unknown, bank: repository.OpenFinance
       || (accountType === 'savings' && !bank.savings_account)
       || (accountType === 'fixed_income' && !bank.fixed_income)) continue;
 
-    const balance = typeof account.balance === 'number' && Number.isFinite(account.balance)
+    let balance = typeof account.balance === 'number' && Number.isFinite(account.balance)
       ? String(account.balance)
       : typeof account.balance === 'string' && account.balance.trim() !== ''
         ? account.balance.trim()
@@ -127,6 +177,23 @@ export function parsePluggyAccounts(input: unknown, bank: repository.OpenFinance
       || Number.isNaN(updatedAt.getTime())
     ) {
       throw new ApiError(502, 'pluggyResponseInvalid');
+    }
+
+    if (accountType === 'checking') {
+      const baseBalanceCents = parseBalanceCents(balance);
+      const reservedBalanceCents = getReservedBalanceCents(account);
+      const totalBalanceCents = (baseBalanceCents ?? 0) + reservedBalanceCents;
+      if (
+        baseBalanceCents === null
+        || !Number.isSafeInteger(totalBalanceCents)
+        || Math.abs(totalBalanceCents) > MAX_BALANCE * 100
+      ) {
+        throw new ApiError(502, 'pluggyResponseInvalid');
+      }
+      if (reservedBalanceCents !== 0) {
+        const totalBalance = (totalBalanceCents / 100).toFixed(2);
+        balance = totalBalance.replace(/\.?0+$/, '');
+      }
     }
 
     accounts.push({

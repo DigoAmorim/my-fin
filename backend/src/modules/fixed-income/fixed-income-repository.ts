@@ -67,6 +67,7 @@ export async function upsertFixedIncome(
         `DELETE FROM my_fin.account
          WHERE bank_id = $1
            AND source = 'pluggy_investment'
+           AND account_type = 'fixed_income'
            AND NOT (pluggy_investment_id = ANY($2::varchar[]))`,
         [bank.id, positions.map((position) => position.id)],
       );

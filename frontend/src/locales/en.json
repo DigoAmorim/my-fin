@@ -11,7 +11,9 @@
     "openFinance": "Open Finance",
     "accounts": "Accounts",
     "fixedIncome": "Fixed income",
+    "variableIncome": "Variable income",
     "transactions": "Transactions",
+    "payments": "Payments",
     "invoices": "I nvoices",
     "groupFeatures": "Features",
     "groupAnalysis": "Analysis",
@@ -59,7 +61,39 @@
     "emptyDebtors": "No debtors provided.",
     "emptyLimits": "Add limits to track usage.",
     "unassignedDebtor": "Rodrigo",
-    "dailySpendAvailable": "Available to spend per day"
+    "dailySpendAvailable": "Available to spend per day",
+    "assetsOverview": "Assets by category",
+    "assetsOverviewDescription": "See how your assets are distributed across accounts and investments.",
+    "assetsTotal": "Total assets",
+    "assetsChartLabel": "Asset distribution. Total: {{amount}}",
+    "assetShare": "{{name}} share of assets",
+    "accounts": "Accounts",
+    "fixedIncome": "Fixed income",
+    "variableIncome": "Variable income",
+    "futurePayments": "Upcoming payments"
+  },
+  "payments": {
+    "title": "Payments",
+    "listTitle": "Registered payments",
+    "description": "Organize the payments planned for the month.",
+    "add": "New payment",
+    "edit": "Edit payment",
+    "formDescription": "Enter the name, amount, date, and account for the payment.",
+    "name": "Payment name",
+    "amount": "Payment amount",
+    "date": "Payment date",
+    "noDate": "No date",
+    "account": "Account",
+    "selectAccount": "Select an account",
+    "empty": "There are no payments yet.",
+    "noAccounts": "Add a checking or savings account before creating payments.",
+    "openAccounts": "Go to accounts",
+    "retry": "Try again",
+    "deleteTitle": "Delete payment",
+    "deleteConfirm": "Are you sure you want to delete the payment {{name}}?",
+    "created": "Payment created successfully.",
+    "updated": "Payment updated successfully.",
+    "deleted": "Payment deleted successfully."
   },
   "creditCards": {
     "title": "Credit cards",
@@ -170,7 +204,7 @@
     "deleted": "Bank removed successfully.",
     "synchronize": "Refresh data",
     "synchronizing": "Refreshing...",
-    "syncSuccess": "{{accounts}} account(s) and {{investments}} investment(s) synchronized successfully."
+    "syncSuccess": "{{accounts}} account(s), {{investments}} fixed-income investment(s), and {{variableInvestments}} variable-income investment(s) synchronized successfully."
   },
   "accounts": {
     "title": "Accounts",
@@ -221,6 +255,23 @@
     "subtypes": {
       "TREASURY": "Treasury"
     }
+  },
+  "rendaVariavel": {
+    "title": "Variable income",
+    "listTitle": "Variable-income investments",
+    "description": "Review your stocks, quantities, and current values.",
+    "total": "Total variable-income value",
+    "asset": "Asset",
+    "unitValue": "Share price",
+    "quantity": "Quantity",
+    "amount": "Total value",
+    "actions": "Actions",
+    "assetLogo": "{{name}} asset icon",
+    "deleteAsset": "Delete asset {{name}}",
+    "deleteTitle": "Delete asset",
+    "deleteConfirm": "Are you sure you want to delete the {{name}} asset?",
+    "empty": "There are no variable-income investments available yet.",
+    "retry": "Try again"
   },
   "transactions": {
     "title": "Card transactions",

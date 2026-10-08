@@ -46,6 +46,7 @@ export async function findAll(accountType?: AccountType): Promise<Account[]> {
        ORDER BY bank_name, account_type, account_number, id`
     : `SELECT ${ACCOUNT_COLUMNS}
        FROM my_fin.account
+       WHERE account_type <> 'EQUITY'
        ORDER BY bank_name, account_type, account_number, id`;
   const result = await pool.query<AccountRow>(query, accountType ? [accountType] : []);
 

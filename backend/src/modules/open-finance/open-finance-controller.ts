@@ -2,6 +2,7 @@ import { withErrorHandling } from '../../lib/api-errors';
 import { createPluggyApiKey } from '../../lib/pluggy-client';
 import { synchronizeAccounts as synchronize } from '../account/account-service';
 import { synchronizeFixedIncome } from '../fixed-income/fixed-income-service';
+import { synchronizeVariableIncome } from '../variable-income/variable-income-service';
 import {
   createOpenFinanceBank as create,
   deleteOpenFinanceBank as remove,
@@ -29,14 +30,19 @@ export const deleteOpenFinanceBank = withErrorHandling(async (request, response)
 export const synchronizeOpenFinanceAccounts = withErrorHandling(async (_request, response) => {
   const banks = await list();
   if (banks.length === 0) {
-    response.json({ synchronizedAccounts: 0, synchronizedInvestments: 0 });
+    response.json({
+      synchronizedAccounts: 0,
+      synchronizedInvestments: 0,
+      synchronizedVariableInvestments: 0,
+    });
     return;
   }
 
   const apiKey = await createPluggyApiKey();
-  const [accounts, investments] = await Promise.all([
+  const [accounts, investments, variableInvestments] = await Promise.all([
     synchronize(apiKey),
     synchronizeFixedIncome(apiKey),
+    synchronizeVariableIncome(apiKey),
   ]);
-  response.json({ ...accounts, ...investments });
+  response.json({ ...accounts, ...investments, ...variableInvestments });
 });

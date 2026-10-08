@@ -9,13 +9,14 @@ import type { FixedIncomeSummary, PluggyFixedIncomePosition } from './fixed-inco
 
 const MAX_AMOUNT_CENTS = 99_999_999_999_999n;
 
-type FixedIncomeBank = Pick<OpenFinanceBank, 'id' | 'bankName' | 'pluggyItemId' | 'fixedIncome' | 'variableIncome'>;
+type FixedIncomeBank = Pick<OpenFinanceBank, 'id' | 'bankName' | 'pluggyItemId' | 'fixedIncome'>;
 
 type PluggyInvestmentPayload = {
   id?: unknown;
   type?: unknown;
   subtype?: unknown;
   amount?: unknown;
+  taxes?: unknown;
   date?: unknown;
 };
 
@@ -36,6 +37,33 @@ function normalizeAmount(value: unknown): string {
 
   const roundedSign = sign && cents > 0n ? '-' : '';
   return `${roundedSign}${cents / 100n}.${String(cents % 100n).padStart(2, '0')}`;
+}
+
+function amountToCents(amount: string): bigint {
+  const negative = amount.startsWith('-');
+  const [whole, fraction = ''] = amount.replace(/^-/, '').split('.');
+  const cents = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, '0'));
+  return negative ? -cents : cents;
+}
+
+function amountFromCents(cents: bigint): string {
+  const sign = cents < 0n ? '-' : '';
+  const absolute = cents < 0n ? -cents : cents;
+  return `${sign}${absolute / 100n}.${String(absolute % 100n).padStart(2, '0')}`;
+}
+
+function subtractTaxes(amount: unknown, taxes: unknown): string {
+  const amountCents = amountToCents(normalizeAmount(amount));
+  const taxesCents = taxes === undefined || taxes === null
+    ? 0n
+    : amountToCents(normalizeAmount(taxes));
+  if (taxesCents < 0n) throw new ApiError(502, 'pluggyResponseInvalid');
+
+  const netAmountCents = amountCents - taxesCents;
+  if (netAmountCents > MAX_AMOUNT_CENTS || netAmountCents < -MAX_AMOUNT_CENTS) {
+    throw new ApiError(502, 'pluggyResponseInvalid');
+  }
+  return amountFromCents(netAmountCents);
 }
 
 export function parseFixedIncomePositions(
@@ -67,7 +95,7 @@ export function parseFixedIncomePositions(
     positions.push({
       id,
       subtype,
-      amount: normalizeAmount(item.amount),
+      amount: subtractTaxes(item.amount, item.taxes),
       updatedAt: updatedAt.toISOString(),
     });
   }
@@ -76,14 +104,9 @@ export function parseFixedIncomePositions(
 
 export function sumFixedIncomeAmounts<T extends { amount: string }>(positions: T[]): string {
   const cents = positions.reduce((sum, position) => {
-    const negative = position.amount.startsWith('-');
-    const [whole, fraction = ''] = position.amount.replace(/^-/, '').split('.');
-    const absolute = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, '0'));
-    return sum + (negative ? -absolute : absolute);
+    return sum + amountToCents(position.amount);
   }, 0n);
-  const sign = cents < 0n ? '-' : '';
-  const absolute = cents < 0n ? -cents : cents;
-  return `${sign}${absolute / 100n}.${String(absolute % 100n).padStart(2, '0')}`;
+  return amountFromCents(cents);
 }
 
 export function groupFixedIncomePositions(
@@ -120,7 +143,7 @@ export async function synchronizeFixedIncome(
   apiKey?: string,
 ): Promise<{ synchronizedInvestments: number }> {
   const banks = await bankRepository.findAll();
-  const enabledBanks = banks.filter((bank: FixedIncomeBank) => bank.fixedIncome || bank.variableIncome);
+  const enabledBanks = banks.filter((bank: FixedIncomeBank) => bank.fixedIncome);
   if (enabledBanks.length === 0) return { synchronizedInvestments: 0 };
 
   const token = apiKey ?? await createPluggyApiKey();
