@@ -23,7 +23,7 @@ import { listPurchaseLimits } from '../lib/purchase-limit-api';
 import { listTransactions } from '../lib/transaction-api';
 import { listPayments } from '../lib/payment-api';
 import { minorUnitsToNumber, sumMinorUnits, toMinorUnits } from '../lib/money';
-import { createCurrencyFormatter } from '../lib/utils';
+import { useCurrencyFormatter } from '../lib/privacy-mode';
 import type { CreditCard } from '../types/credit-card';
 import type { Account } from '../types/account';
 import type { InvestmentSummary } from '../types/investment';
@@ -132,10 +132,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
-  const currencyFormatter = useMemo(
-    () => createCurrencyFormatter(locale),
-    [locale],
-  );
+  const currencyFormatter = useCurrencyFormatter(locale);
   const formatCurrency = (amount: number) => currencyFormatter.format(amount);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AccountType } from '../../types/account';
+import { usePrivacyMode } from '../../lib/privacy-mode';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -57,6 +58,7 @@ export function AccountForm({
   onCancel,
 }: AccountFormProps) {
   const { t } = useTranslation();
+  const { privateMode } = usePrivacyMode();
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) onCancel(); }}>
@@ -125,8 +127,9 @@ export function AccountForm({
             <Label htmlFor="account-balance">{t('accounts.balance')}</Label>
             <Input
               id="account-balance"
-              type="number"
-              step="0.01"
+              type={privateMode ? 'password' : 'number'}
+              step={privateMode ? undefined : '0.01'}
+              inputMode="decimal"
               value={values.balance}
               onChange={(event) => onValuesChange({ ...values, balance: event.target.value })}
               disabled={isSaving}

@@ -5,7 +5,7 @@ import type { CreditCard } from '../../types/credit-card';
 import type { Transaction } from '../../types/transaction';
 import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../../lib/transaction-labels';
 import { sortRows, type SortDirection } from '../../lib/table-sorting';
-import { createCurrencyFormatter } from '../../lib/utils';
+import { useCurrencyFormatter } from '../../lib/privacy-mode';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { SortableTableHead } from '../ui/sortable-table-head';
@@ -40,10 +40,7 @@ export function TransactionTable({
 
   // Reaproveita os lookups e o formatador entre renderizacoes da mesma lista.
   const cardNames = useMemo(() => new Map(cards.map((card) => [card.id, card.name])), [cards]);
-  const amountFormatter = useMemo(
-    () => createCurrencyFormatter(locale),
-    [locale],
-  );
+  const amountFormatter = useCurrencyFormatter(locale);
   const sortedTransactions = useMemo(() => sortRows(
     transactions,
     (transaction) => {

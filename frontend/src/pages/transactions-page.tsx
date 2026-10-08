@@ -22,7 +22,7 @@ import {
 import { createTransaction, deleteTransaction, listTransactions, payTransactions, updateTransaction } from '../lib/transaction-api';
 import { listCreditCards } from '../lib/credit-card-api';
 import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
-import { createCurrencyFormatter } from '../lib/utils';
+import { useCurrencyFormatter } from '../lib/privacy-mode';
 import type { CreditCard } from '../types/credit-card';
 import type { PurchaseType, Transaction, TransactionFormValues, TransactionInput, TransactionType } from '../types/transaction';
 
@@ -133,10 +133,7 @@ export function TransactionsPage({ onNavigate }: TransactionsPageProps) {
   }, [transactions, cardFilter, typeFilter, purchaseFilter, debtorFilter]);
 
   const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
-  const amountFormatter = useMemo(
-    () => createCurrencyFormatter(locale),
-    [locale],
-  );
+  const amountFormatter = useCurrencyFormatter(locale);
   const summaryTotals = useMemo(() => {
     let creditCents = 0n;
     let expenseCents = 0n;

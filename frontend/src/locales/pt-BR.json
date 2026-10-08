@@ -16,6 +16,7 @@
     "payments": "Pagamentos",
     "invoices": "Faturas",
     "groupFeatures": "Funcionalidades",
+    "investiment": "Investimento",
     "groupAnalysis": "Análise",
     "groupSettings": "Configuração",
     "budgets": "Orçamentos",
@@ -25,6 +26,8 @@
   },
   "toolbar": {
     "language": "Idioma",
+    "hideAmounts": "Ocultar valores",
+    "showAmounts": "Mostrar valores",
     "toggleMenu": "Abrir menu",
     "closeMenu": "Fechar menu"
   },

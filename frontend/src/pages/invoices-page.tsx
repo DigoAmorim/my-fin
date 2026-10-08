@@ -22,7 +22,7 @@ import { getPaymentHistory } from '../lib/transaction-api';
 import { listCreditCards } from '../lib/credit-card-api';
 import { resolveDateLocales } from '../lib/date-locales';
 import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../lib/transaction-labels';
-import { createCurrencyFormatter } from '../lib/utils';
+import { useCurrencyFormatter, type CurrencyFormatter } from '../lib/privacy-mode';
 import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
 import { sortRows, type SortDirection } from '../lib/table-sorting';
 import type { CreditCard } from '../types/credit-card';
@@ -204,10 +204,7 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
       : 'text-muted-foreground';
   const hasFilters = !!search || !!typeFilter || !!purchaseFilter || !!debtorFilter;
 
-  const amountFormatter = useMemo(
-    () => createCurrencyFormatter(intlLocale),
-    [intlLocale],
-  );
+  const amountFormatter = useCurrencyFormatter(intlLocale);
 
   function toggleInvoiceSort(column: InvoiceSortColumn) {
     if (invoiceSortBy === column) {
@@ -654,7 +651,7 @@ function renderPaidTransaction(
   transaction: PaidTransaction,
   card: CreditCard | null,
   locale: string,
-  amountFormatter: Intl.NumberFormat,
+  amountFormatter: CurrencyFormatter,
   t: ReturnType<typeof useTranslation>['t'],
 ) {
   const isCredit = transaction.transactionType === 'credit';

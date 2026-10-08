@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { purchaseTypeLabelKeys } from '../../lib/transaction-labels';
+import { usePrivacyMode } from '../../lib/privacy-mode';
 import type { PurchaseType } from '../../types/transaction';
 import { Button } from '../ui/button';
 import {
@@ -49,6 +50,7 @@ export function PurchaseLimitForm({
   onCancel,
 }: PurchaseLimitFormProps) {
   const { t } = useTranslation();
+  const { privateMode } = usePrivacyMode();
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) onCancel(); }}>
@@ -84,9 +86,9 @@ export function PurchaseLimitForm({
             <Label htmlFor="purchase-limit-amount">{t('purchaseLimits.amount')}</Label>
             <Input
               id="purchase-limit-amount"
-              type="number"
+              type={privateMode ? 'password' : 'number'}
               min="0.01"
-              step="0.01"
+              step={privateMode ? undefined : '0.01'}
               inputMode="decimal"
               value={amount}
               onChange={(event) => onAmountChange(event.target.value)}

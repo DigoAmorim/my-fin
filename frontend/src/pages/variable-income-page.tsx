@@ -18,6 +18,7 @@ import {
   deleteVariableIncomeInvestment,
   getVariableIncomeSummary,
 } from '../lib/variable-income-api';
+import { useCurrencyFormatter } from '../lib/privacy-mode';
 import type { VariableIncomeInvestment, VariableIncomeSummary } from '../types/variable-income';
 
 type VariableIncomePageProps = {
@@ -53,7 +54,7 @@ export function VariableIncomePage({ onNavigate }: VariableIncomePageProps) {
 
   const language = i18n.resolvedLanguage ?? i18n.language;
   const locale = language.startsWith('pt') ? 'pt-BR' : 'en-US';
-  const currencyFormatter = new Intl.NumberFormat(locale, { style: 'currency', currency: 'BRL' });
+  const currencyFormatter = useCurrencyFormatter(locale);
   const quantityFormatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 10 });
 
   function reloadInvestments() {
@@ -80,7 +81,7 @@ export function VariableIncomePage({ onNavigate }: VariableIncomePageProps) {
     <AppLayout currentPage="variableIncome" onNavigate={onNavigate}>
       <PageContainer>
         <PageHeader
-          section={t('nav.groupFeatures')}
+          section={t('nav.investiment')}
           title={t('rendaVariavel.title')}
         />
 
@@ -115,7 +116,6 @@ export function VariableIncomePage({ onNavigate }: VariableIncomePageProps) {
               <div className="flex items-center justify-between gap-4 border-b border-border bg-muted/30 px-4 py-3 sm:px-5">
                 <span className="text-xs font-medium text-muted-foreground">{t('rendaVariavel.total')}</span>
                 <span className="flex items-center gap-2 text-sm font-bold tabular-nums text-emerald-600">
-                  <TrendingUp size={16} />
                   {currencyFormatter.format(Number(summary.total))}
                 </span>
               </div>

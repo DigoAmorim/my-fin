@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { CreditCard } from '../../types/credit-card';
 import type { PurchaseType, TransactionFormValues, TransactionType } from '../../types/transaction';
+import { usePrivacyMode } from '../../lib/privacy-mode';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { DatePickerInput } from '../ui/date-picker-input';
@@ -32,6 +33,7 @@ export function TransactionForm({
   onCancel,
 }: TransactionFormProps) {
   const { t } = useTranslation();
+  const { privateMode } = usePrivacyMode();
   const isCredit = form.transactionType === 'credit';
 
   return (
@@ -129,7 +131,7 @@ export function TransactionForm({
               <Label htmlFor="transaction-amount">{t('transactions.fields.installmentAmount')}</Label>
               <Input
                 id="transaction-amount"
-                type="text"
+                type={privateMode ? 'password' : 'text'}
                 inputMode="decimal"
                 value={form.installmentAmount}
                 onChange={(event) => onChange({ ...form, installmentAmount: event.target.value })}

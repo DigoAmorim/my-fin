@@ -1,8 +1,9 @@
-import { BadgeDollarSign, CreditCard, Gauge, Globe, HandCoins, Languages, LayoutDashboard, Menu, Receipt, ReceiptText, TrendingUp, Wallet } from 'lucide-react';
+import { BadgeDollarSign, CreditCard, Eye, EyeOff, Gauge, Globe, HandCoins, Languages, LayoutDashboard, Menu, Receipt, ReceiptText, TrendingUp, Wallet } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
+import { usePrivacyMode } from '../../lib/privacy-mode';
 
 /** Destinos disponíveis na navegação principal da aplicação. */
 export type AppPage = 'dashboard' | 'accounts' | 'fixedIncome' | 'variableIncome' | 'creditCards' | 'limits' | 'openFinance' | 'transactions' | 'payments' | 'invoices';
@@ -24,6 +25,7 @@ type AppLayoutProps = {
 
 export function AppLayout({ children, currentPage, onNavigate }: AppLayoutProps) {
   const { t, i18n } = useTranslation();
+  const { privateMode, togglePrivateMode } = usePrivacyMode();
   // O layout centraliza o menu para que todas as páginas compartilhem o mesmo comportamento mobile.
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toggleLanguage = () => {
@@ -62,6 +64,16 @@ export function AppLayout({ children, currentPage, onNavigate }: AppLayoutProps)
             <strong className="block text-[0.95rem] leading-none text-foreground">{t('app.name')}</strong>
           </div>
           <div className="ml-auto flex items-center gap-[0.15rem]">
+            <button
+              type="button"
+              className="inline-flex size-[1.8rem] items-center justify-center rounded-[0.4rem] border-0 bg-transparent p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={togglePrivateMode}
+              aria-label={t(privateMode ? 'toolbar.showAmounts' : 'toolbar.hideAmounts')}
+              aria-pressed={privateMode}
+              title={t(privateMode ? 'toolbar.showAmounts' : 'toolbar.hideAmounts')}
+            >
+              {privateMode ? <Eye size={16} /> : <EyeOff size={16} />}
+            </button>
             <button type="button" className="inline-flex size-[1.8rem] items-center justify-center rounded-[0.4rem] border-0 bg-transparent p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" onClick={toggleLanguage} aria-label={t('toolbar.language')} title={t('toolbar.language')}>
               <Languages size={16} />
             </button>

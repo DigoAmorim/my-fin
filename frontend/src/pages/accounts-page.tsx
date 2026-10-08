@@ -12,6 +12,7 @@ import { Button } from '../components/ui/button';
 import { SortableTableHead } from '../components/ui/sortable-table-head';
 import { sortRows, type SortDirection } from '../lib/table-sorting';
 import { minorUnitsToNumber, sumMinorUnits } from '../lib/money';
+import { useCurrencyFormatter } from '../lib/privacy-mode';
 import {
   Dialog,
   DialogContent,
@@ -26,11 +27,10 @@ import {
   listAccounts,
   updateManualAccount,
 } from '../lib/account-api';
-import type { Account, AccountType, ManualAccountInput } from '../types/account';
+import type { Account, ManualAccountInput } from '../types/account';
 
 type AccountsPageProps = {
   onNavigate: (page: AppPage) => void;
-  accountType?: AccountType;
 };
 
 const EMPTY_ACCOUNT: AccountFormValues = {
@@ -42,7 +42,7 @@ const EMPTY_ACCOUNT: AccountFormValues = {
 
 type AccountSortColumn = 'bankName' | 'accountNumber' | 'accountType' | 'balance' | 'updatedAt';
 
-export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
+export function AccountsPage({ onNavigate }: AccountsPageProps) {
   const { t, i18n } = useTranslation();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,12 +60,10 @@ export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
 
   useEffect(() => {
     const controller = new AbortController();
-    void listAccounts(controller.signal, accountType)
+    void listAccounts(controller.signal)
       .then((nextAccounts) => {
         if (controller.signal.aborted) return;
-        setAccounts(accountType
-          ? nextAccounts.filter((item) => item.accountType === accountType)
-          : nextAccounts.filter((item) => item.accountType !== 'fixed_income'));
+        setAccounts(nextAccounts.filter((item) => item.accountType !== 'fixed_income'));
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
@@ -76,7 +74,7 @@ export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
       });
 
     return () => controller.abort();
-  }, [accountType, reloadId, t]);
+  }, [reloadId, t]);
 
   function closeForm() {
     setDialogOpen(false);
@@ -87,7 +85,7 @@ export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
 
   function openCreateForm() {
     setEditingAccount(null);
-    setValues({ ...EMPTY_ACCOUNT, accountType: accountType ?? 'checking' });
+    setValues(EMPTY_ACCOUNT);
     setFormError('');
     setDialogOpen(true);
   }
@@ -158,7 +156,7 @@ export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
 
   const language = i18n.resolvedLanguage ?? i18n.language;
   const locale = language.startsWith('pt') ? 'pt-BR' : 'en-US';
-  const currencyFormatter = new Intl.NumberFormat(locale, { style: 'currency', currency: 'BRL' });
+  const currencyFormatter = useCurrencyFormatter(locale);
   const dateFormatter = new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: '2-digit',
@@ -199,15 +197,15 @@ export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
   }
 
   return (
-    <AppLayout currentPage={accountType ? 'fixedIncome' : 'accounts'} onNavigate={onNavigate}>
+    <AppLayout currentPage="accounts" onNavigate={onNavigate}>
       <PageContainer>
         <PageHeader
-          section={t('nav.groupFeatures')}
-          title={accountType ? t('rendaFixa.title') : t('accounts.title')}
+          section={t('accounts.title')}
+          title={t('accounts.title')}
           action={(
             <Button size="small" onClick={openCreateForm}>
               <Plus size={15} />
-              {t(accountType ? 'rendaFixa.add' : 'accounts.add')}
+              {t('accounts.add')}
             </Button>
           )}
         />
@@ -215,10 +213,10 @@ export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
         <ContentSection>
           <div className="border-b border-border px-4 py-3 max-md:px-[0.9rem] max-md:py-[0.85rem]">
             <h2 className="m-0 text-[0.86rem] font-semibold text-foreground">
-              {t(accountType ? 'rendaFixa.listTitle' : 'accounts.listTitle')}
+              {t('accounts.listTitle')}
             </h2>
             <p className="mb-0 mt-1 text-xs text-muted-foreground">
-              {t(accountType ? 'rendaFixa.description' : 'accounts.description')}
+              {t('accounts.description')}
             </p>
           </div>
 
@@ -235,11 +233,11 @@ export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
             <div className="flex flex-col items-center gap-3 px-5 py-12 text-center">
               <Wallet size={28} className="text-muted-foreground" />
               <p className="m-0 text-sm text-muted-foreground">
-                {t(accountType ? 'rendaFixa.empty' : 'accounts.empty')}
+                {t('accounts.empty')}
               </p>
               <Button size="small" onClick={openCreateForm}>
                 <Plus size={15} />
-                {t(accountType ? 'rendaFixa.add' : 'accounts.add')}
+                {t('accounts.add')}
               </Button>
             </div>
           ) : (
@@ -333,7 +331,6 @@ export function AccountsPage({ onNavigate, accountType }: AccountsPageProps) {
         isSaving={isSaving}
         values={values}
         validationError={formError}
-        accountTypeFilter={accountType}
         onValuesChange={setValues}
         onSubmit={handleSubmit}
         onCancel={closeForm}

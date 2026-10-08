@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { createPayment, deletePayment, listPayments, updatePayment } from '../lib/payment-api';
 import { listAccounts } from '../lib/account-api';
 import { sortRows, type SortDirection } from '../lib/table-sorting';
-import { createCurrencyFormatter } from '../lib/utils';
+import { useCurrencyFormatter, usePrivacyMode } from '../lib/privacy-mode';
 import { SortableTableHead } from '../components/ui/sortable-table-head';
 import type { Account } from '../types/account';
 import type { Payment, PaymentInput } from '../types/payment';
@@ -48,6 +48,7 @@ const EMPTY_FORM: PaymentFormValues = {
 
 export function PaymentsPage({ onNavigate }: PaymentsPageProps) {
   const { t, i18n } = useTranslation();
+  const { privateMode } = usePrivacyMode();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'date' | 'account'>('date');
@@ -87,7 +88,7 @@ export function PaymentsPage({ onNavigate }: PaymentsPageProps) {
   }, [reloadKey, t]);
 
   const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
-  const currencyFormatter = useMemo(() => createCurrencyFormatter(locale), [locale]);
+  const currencyFormatter = useCurrencyFormatter(locale);
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat(locale), [locale]);
   const sortedPayments = useMemo(() => sortRows(
     payments,
@@ -341,6 +342,7 @@ export function PaymentsPage({ onNavigate }: PaymentsPageProps) {
                 <Label htmlFor="payment-amount">{t('payments.amount')}</Label>
                 <Input
                   id="payment-amount"
+                  type={privateMode ? 'password' : 'text'}
                   inputMode="decimal"
                   value={form.amount}
                   placeholder="0.00"

@@ -23,6 +23,7 @@ import {
   updateManualAccount,
 } from '../lib/account-api';
 import { deleteInvestment, getInvestmentSummary } from '../lib/investment-api';
+import { useCurrencyFormatter } from '../lib/privacy-mode';
 import type { Account, ManualAccountInput } from '../types/account';
 import type { InvestmentSummary, Investment } from '../types/investment';
 
@@ -71,7 +72,7 @@ export function FixedIncomePage({ onNavigate }: FixedIncomePageProps) {
 
   const language = i18n.resolvedLanguage ?? i18n.language;
   const locale = language.startsWith('pt') ? 'pt-BR' : 'en-US';
-  const currencyFormatter = new Intl.NumberFormat(locale, { style: 'currency', currency: 'BRL' });
+  const currencyFormatter = useCurrencyFormatter(locale);
   const dateFormatter = new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: '2-digit',
@@ -171,7 +172,7 @@ export function FixedIncomePage({ onNavigate }: FixedIncomePageProps) {
     <AppLayout currentPage="fixedIncome" onNavigate={onNavigate}>
       <PageContainer>
         <PageHeader
-          section={t('nav.groupFeatures')}
+          section={t('nav.investiment')}
           title={t('rendaFixa.title')}
           action={(
             <Button size="small" onClick={openCreateForm}>
