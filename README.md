@@ -29,7 +29,7 @@ Use `npm run db:down` para parar o banco. Os dados locais ficam em um volume Doc
 - `backend/database`: runner TypeScript e migrações PostgreSQL em arquivos SQL numerados.
 - `docker-compose.yml`: serviço PostgreSQL para desenvolvimento local.
 
-O endpoint de prontidão valida a conexão com o banco. Ainda não há autenticação, regras financeiras ou configuração de produção; não use os dados de exemplo fora do desenvolvimento local.
+O endpoint de prontidão valida a conexão com o banco. A aplicação ainda não possui autenticação ou configuração de produção; não a exponha publicamente nem use dados financeiros reais em ambientes sem esses controles.
 
 ## Contas e Open Finance
 
@@ -43,7 +43,14 @@ A tela **Contas** lista os saldos sincronizados e manuais, usando a data retorna
 - `backend/src/modules/<domínio>` mantém rotas, controllers, serviços, repositórios e tipos próximos ao domínio. Controllers adaptam HTTP, serviços aplicam regras e repositórios concentram SQL.
 - `backend/src/lib` contém infraestrutura compartilhada, como validação, erros, decimal e cliente Pluggy; regras específicas de um domínio permanecem no módulo correspondente.
 - `backend/database/migrations` contém alterações de schema versionadas. Não altere manualmente tabelas de ambientes já migrados sem registrar a mudança em uma migration.
-- Verificações locais: `npm test --workspace @my-fin/backend`, `npm run build` e `npm run lint`.
+- O backend valida as regras de domínio antes de persistir e usa constraints no PostgreSQL para reforçar invariantes estruturais, como os limites de parcelas.
+- Os valores monetários da API são tratados como decimais; mantenha valores como strings nos contratos para não perder precisão ao passar por números de ponto flutuante.
+- `my_fin.account_snapshot` guarda uma posição por conta e mês, usando o primeiro dia do mês em `snapshot_month`. A evolução do patrimônio compara os 11 meses recentes com snapshots aos saldos atuais das contas; o índice por mês é mantido por migration para servir essa consulta conforme o histórico cresce.
+- Operações de escrita que abrangem várias instruções usam `backend/database/transaction.ts` para assegurar commit/rollback e liberação do cliente PostgreSQL no mesmo padrão.
+- `frontend/src/lib/locale.ts` centraliza a conversão do idioma da interface para os locales de formatação (`pt-BR` e `en-US`).
+- Telas que compartilham o mesmo ciclo de leitura assíncrona usam `frontend/src/lib/use-async-resource.ts`, com cancelamento ao desmontar, estado de carregamento/erro e recarga explícita; fluxos com estado distinto continuam locais à tela.
+- Cada conta pode ter um único registro em `my_fin.account_yield`; a migration 026 aborta sem alterar dados caso encontre duplicatas existentes. Rendimentos automáticos usam o saldo em `my_fin.account.balance` e o snapshot mais recente anterior ao mês corrente. A migration correspondente mantém o rendimento sincronizado quando o saldo da conta é atualizado.
+- Verificações locais: `npm test --workspace @my-fin/backend` executa os testes do backend; `npm run build` compila backend e frontend; `npm run lint` executa os linters dos workspaces. O frontend ainda não possui uma suíte de testes automatizados configurada.
 
 ## API de transações
 

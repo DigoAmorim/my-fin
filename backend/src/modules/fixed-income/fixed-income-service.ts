@@ -18,6 +18,7 @@ type PluggyInvestmentPayload = {
   amount?: unknown;
   taxes?: unknown;
   date?: unknown;
+  updatedAt?: unknown;
 };
 
 function normalizeAmount(value: unknown): string {
@@ -87,7 +88,8 @@ export function parseFixedIncomePositions(
     if (type.toUpperCase() !== 'FIXED_INCOME') continue;
 
     const subtype = typeof item.subtype === 'string' ? item.subtype.trim() : '';
-    const updatedAt = typeof item.date === 'string' ? new Date(item.date) : new Date(fallbackUpdatedAt);
+    const updatedAtValue = item.updatedAt ?? item.date ?? fallbackUpdatedAt;
+    const updatedAt = typeof updatedAtValue === 'string' ? new Date(updatedAtValue) : new Date(NaN);
     if (!id || !subtype || Number.isNaN(updatedAt.getTime())) {
       throw new ApiError(502, 'pluggyResponseInvalid');
     }

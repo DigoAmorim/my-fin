@@ -6,6 +6,7 @@ import {
   HandCoins,
   LayoutDashboard,
   ReceiptText,
+  TrendingUp,
   Wallet,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
@@ -22,6 +23,8 @@ import { purchaseTypeLabelKeys } from '../lib/transaction-labels';
 import { listPurchaseLimits } from '../lib/purchase-limit-api';
 import { listTransactions } from '../lib/transaction-api';
 import { listPayments } from '../lib/payment-api';
+import { getSnapshotEvolution } from '../lib/snapshot-api';
+import { resolveIntlLocale } from '../lib/locale';
 import { minorUnitsToNumber, sumMinorUnits, toMinorUnits } from '../lib/money';
 import { useCurrencyFormatter } from '../lib/privacy-mode';
 import type { CreditCard } from '../types/credit-card';
@@ -30,6 +33,7 @@ import type { InvestmentSummary } from '../types/investment';
 import type { PurchaseLimit } from '../types/purchase-limit';
 import type { PurchaseType, Transaction } from '../types/transaction';
 import type { Payment } from '../types/payment';
+import type { SnapshotEvolutionPoint } from '../types/snapshot';
 import type { VariableIncomeSummary } from '../types/variable-income';
 
 const PURCHASE_TYPES: PurchaseType[] = [
@@ -126,12 +130,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [limits, setLimits] = useState<PurchaseLimit[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [snapshotEvolution, setSnapshotEvolution] = useState<SnapshotEvolutionPoint[]>([]);
   const [fixedIncome, setFixedIncome] = useState<InvestmentSummary | null>(null);
   const [variableIncome, setVariableIncome] = useState<VariableIncomeSummary | null>(null);
   const [activeAssetTooltip, setActiveAssetTooltip] = useState<ActiveAssetTooltip | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
+  const locale = resolveIntlLocale(i18n.resolvedLanguage ?? i18n.language);
   const currencyFormatter = useCurrencyFormatter(locale);
   const formatCurrency = (amount: number) => currencyFormatter.format(amount);
 
@@ -143,16 +148,18 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       listPayments(controller.signal),
       listPurchaseLimits(controller.signal),
       listAccounts(controller.signal),
+      getSnapshotEvolution(controller.signal),
       getInvestmentSummary(controller.signal),
       getVariableIncomeSummary(controller.signal),
     ])
-      .then(([nextCards, nextTransactions, nextPayments, nextLimits, nextAccounts, nextFixedIncome, nextVariableIncome]) => {
+      .then(([nextCards, nextTransactions, nextPayments, nextLimits, nextAccounts, nextSnapshotEvolution, nextFixedIncome, nextVariableIncome]) => {
         if (controller.signal.aborted) return;
         setCards(nextCards);
         setTransactions(nextTransactions);
         setPayments(nextPayments);
         setLimits(nextLimits);
         setAccounts(nextAccounts);
+        setSnapshotEvolution(nextSnapshotEvolution);
         setFixedIncome(nextFixedIncome);
         setVariableIncome(nextVariableIncome);
         setIsLoading(false);
@@ -238,6 +245,57 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     [assetGroups],
   );
   const totalAssetAmount = minorUnitsToNumber(totalAssetCents);
+  const portfolioEvolution = useMemo(() => {
+    const amounts = snapshotEvolution.map((point) => toMinorUnits(point.amount));
+    const numericAmounts = amounts.map((amount) => Number(amount) / 100);
+    const minimum = numericAmounts.length > 0 ? Math.min(...numericAmounts) : 0;
+    const maximum = numericAmounts.length > 0 ? Math.max(...numericAmounts) : 0;
+    const padding = Math.max((maximum - minimum) * 0.12, Math.abs(maximum) * 0.025, 1);
+    const lowerBound = minimum - padding;
+    const upperBound = maximum + padding;
+    const chartTop = 24;
+    const chartBottom = 184;
+    const chartLeft = 145;
+    const chartRight = 972;
+    const axisTicks = Array.from({ length: 5 }, (_, index) => {
+      const ratio = index / 4;
+      return {
+        y: chartBottom - ratio * (chartBottom - chartTop),
+        value: lowerBound + ratio * (upperBound - lowerBound),
+      };
+    });
+    const points = snapshotEvolution.map((point, index) => {
+      const value = numericAmounts[index];
+      const x = snapshotEvolution.length < 2
+        ? (chartLeft + chartRight) / 2
+        : chartLeft + (index * (chartRight - chartLeft)) / (snapshotEvolution.length - 1);
+      const y = chartBottom - ((value - lowerBound) / (upperBound - lowerBound)) * (chartBottom - chartTop);
+      return { ...point, value, x, y };
+    });
+    const lastAmount = amounts.at(-1) ?? 0n;
+    const previousAmount = amounts.length > 1 ? amounts[amounts.length - 2] : null;
+    const change = previousAmount === null ? null : lastAmount - previousAmount;
+    const percentage = previousAmount === null || previousAmount === 0n
+      ? null
+      : Number(lastAmount - previousAmount) / Number(previousAmount);
+
+    return {
+      points,
+      axisTicks,
+      polyline: points.map(({ x, y }) => `${x},${y}`).join(' '),
+      change,
+      percentage,
+    };
+  }, [snapshotEvolution]);
+  const portfolioPercentageFormatter = useMemo(() => new Intl.NumberFormat(locale, {
+    style: 'percent',
+    signDisplay: 'always',
+    maximumFractionDigits: 2,
+  }), [locale]);
+  const portfolioMonthFormatter = useMemo(() => new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    year: '2-digit',
+  }), [locale]);
   const formattedTotalAssets = formatCurrency(totalAssetAmount);
   const totalAssetsFontSize = Math.max(11, Math.min(20, 230 / formattedTotalAssets.length));
   const absoluteAssetWeight = assetGroups.reduce(
@@ -496,6 +554,146 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 })}
               </ul>
             </div>
+          </ContentSection>
+        )}
+
+        {!loadError && !isLoading && (
+          <ContentSection className="order-4">
+            <div className="border-b border-border px-5 py-4 sm:px-6">
+              <h2 className="m-0 flex items-center gap-2 text-sm font-semibold text-foreground">
+                <TrendingUp size={17} className="text-primary" />
+                {t('dashboard.portfolioEvolution')}
+              </h2>
+              <p className="mb-0 mt-1 text-xs text-muted-foreground">
+                {t('dashboard.portfolioEvolutionDescription')}
+              </p>
+            </div>
+            <div className="px-5 py-5 sm:px-6">
+              <div className="rounded-lg border border-border bg-muted/20 px-4 py-3">
+                <p className="m-0 text-xs font-medium text-muted-foreground">
+                  {t('dashboard.changeSinceSnapshot')}
+                </p>
+                {portfolioEvolution.change === null ? (
+                  <p className="mb-0 mt-1 text-sm text-muted-foreground">
+                    {t('dashboard.snapshotNoHistory')}
+                  </p>
+                ) : (
+                  <p className={`mb-0 mt-1 flex flex-wrap items-baseline gap-x-2 text-xl font-bold tabular-nums ${
+                    portfolioEvolution.change > 0n
+                      ? 'text-emerald-600'
+                      : portfolioEvolution.change < 0n ? 'text-destructive' : 'text-foreground'
+                  }`}>
+                    <span>{formatCurrency(minorUnitsToNumber(portfolioEvolution.change))}</span>
+                    {portfolioEvolution.percentage === null ? (
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {t('dashboard.snapshotPercentageUnavailable')}
+                      </span>
+                    ) : (
+                      <span className="text-sm font-semibold">
+                        {portfolioPercentageFormatter.format(portfolioEvolution.percentage)}
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+            </div>
+            {portfolioEvolution.points.length > 0 ? (
+              <div className="px-3 pb-4 sm:px-5">
+                <svg
+                  className="h-48 w-full overflow-visible"
+                  viewBox="0 0 1000 200"
+                  preserveAspectRatio="none"
+                  role="img"
+                  aria-label={t('dashboard.portfolioEvolutionChartLabel')}
+                >
+                  {portfolioEvolution.axisTicks.map((tick) => (
+                    <g key={tick.y}>
+                      <line
+                        x1="145"
+                        x2="972"
+                        y1={tick.y}
+                        y2={tick.y}
+                        stroke="currentColor"
+                        strokeDasharray="4 7"
+                        className="text-border"
+                      />
+                      <text
+                        x="135"
+                        y={tick.y}
+                        textAnchor="end"
+                        dominantBaseline="middle"
+                        fontSize="12"
+                        className="fill-muted-foreground"
+                      >
+                        {formatCurrency(tick.value)}
+                      </text>
+                    </g>
+                  ))}
+                  {portfolioEvolution.points.length > 1 ? (
+                    <polyline
+                      points={portfolioEvolution.polyline}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-primary"
+                    />
+                  ) : null}
+                  {portfolioEvolution.points.map((point, index) => (
+                    <circle
+                      key={point.month}
+                      cx={point.x}
+                      cy={point.y}
+                      r={index === portfolioEvolution.points.length - 1 ? 7 : 5}
+                      fill="currentColor"
+                      className={index === portfolioEvolution.points.length - 1
+                        ? 'text-emerald-600'
+                        : 'text-primary'}
+                    >
+                      <title>
+                        {portfolioMonthFormatter.format(new Date(`${point.month}-01T12:00:00`))}
+                        {`: ${formatCurrency(point.value)}`}
+                      </title>
+                    </circle>
+                  ))}
+                  {portfolioEvolution.points.map((point, index) => (
+                    <text
+                      key={`${point.month}-value`}
+                      x={point.x}
+                      y={Math.max(point.y - 12, 12)}
+                      textAnchor={index === 0 ? 'start' : index === portfolioEvolution.points.length - 1 ? 'end' : 'middle'}
+                      fontSize="11"
+                      fontWeight="600"
+                      className="fill-foreground"
+                    >
+                      {formatCurrency(point.value)}
+                    </text>
+                  ))}
+                </svg>
+                <div
+                  className="grid gap-1 px-1 text-center text-[10px] text-muted-foreground sm:text-xs"
+                  style={{ gridTemplateColumns: `repeat(${portfolioEvolution.points.length}, minmax(0, 1fr))` }}
+                >
+                  {portfolioEvolution.points.map((point) => {
+                    const month = new Date(`${point.month}-01T12:00:00`);
+                    return (
+                      <span
+                        key={point.month}
+                        className="truncate"
+                        title={portfolioMonthFormatter.format(month)}
+                      >
+                        {portfolioMonthFormatter.format(month)}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <p className="m-0 px-5 pb-5 text-sm text-muted-foreground">
+                {t('dashboard.snapshotNoData')}
+              </p>
+            )}
           </ContentSection>
         )}
 

@@ -1,10 +1,10 @@
 import { Pencil, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CreditCard } from '../../types/credit-card';
 import type { Transaction } from '../../types/transaction';
 import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../../lib/transaction-labels';
-import { sortRows, type SortDirection } from '../../lib/table-sorting';
+import { sortRows, useTableSortState } from '../../lib/table-sorting';
 import { useCurrencyFormatter } from '../../lib/privacy-mode';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
@@ -35,8 +35,7 @@ export function TransactionTable({
 }: TransactionTableProps) {
   const { t } = useTranslation();
   type SortColumn = 'card' | 'purchase' | 'type' | 'debtor' | 'date' | 'installments' | 'description' | 'amount';
-  const [sortBy, setSortBy] = useState<SortColumn>('date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const { sortBy, sortDirection, toggleSort } = useTableSortState<SortColumn>('date', 'desc');
 
   // Reaproveita os lookups e o formatador entre renderizacoes da mesma lista.
   const cardNames = useMemo(() => new Map(cards.map((card) => [card.id, card.name])), [cards]);
@@ -69,14 +68,6 @@ export function TransactionTable({
     locale,
   ), [transactions, cardNames, t, sortBy, sortDirection, locale]);
 
-  function toggleSort(column: SortColumn) {
-    if (sortBy === column) {
-      setSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortDirection('asc');
-    }
-  }
   // O checkbox mestre afeta somente as linhas visiveis e preserva selecoes fora dos filtros.
   const visibleIds = sortedTransactions.map((transaction) => transaction.id);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));

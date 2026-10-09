@@ -1,3 +1,4 @@
+import { withTransaction } from '../../../database/transaction';
 import { pool } from '../../../database/pool';
 import type {
   PaidTransaction,
@@ -134,12 +135,10 @@ export async function remove(id: number): Promise<boolean> {
 export class PaymentSelectionError extends Error {}
 
 export async function paySelectedTransactions(input: PaymentInput): Promise<PaymentResult> {
-  const client = await pool.connect();
-  const removedTransactionIds: number[] = [];
-  const updatedTransactions: Transaction[] = [];
+  return withTransaction(async (client) => {
+    const removedTransactionIds: number[] = [];
+    const updatedTransactions: Transaction[] = [];
 
-  try {
-    await client.query('BEGIN');
     // Lock every selected row before snapshotting so concurrent payments cannot use stale installment numbers.
     const selected = await client.query<TransactionRow>(
       `SELECT ${TRANSACTION_COLUMNS}
@@ -192,14 +191,8 @@ export async function paySelectedTransactions(input: PaymentInput): Promise<Paym
       }
     }
 
-    await client.query('COMMIT');
     return { paidCount: selected.rows.length, removedTransactionIds, updatedTransactions };
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 }
 
 function toPaidTransaction(row: PaymentHistoryRow): PaidTransaction {

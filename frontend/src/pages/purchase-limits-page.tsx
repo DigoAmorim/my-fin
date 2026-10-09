@@ -24,6 +24,7 @@ import {
   updatePurchaseLimit,
 } from '../lib/purchase-limit-api';
 import { listTransactions } from '../lib/transaction-api';
+import { resolveIntlLocale } from '../lib/locale';
 import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
 import { useCurrencyFormatter } from '../lib/privacy-mode';
 import type { PurchaseLimit, PurchaseLimitInput } from '../types/purchase-limit';
@@ -54,7 +55,7 @@ export function PurchaseLimitsPage({ onNavigate }: PurchaseLimitsPageProps) {
   const [formError, setFormError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
+  const locale = resolveIntlLocale(i18n.resolvedLanguage ?? i18n.language);
   const currencyFormatter = useCurrencyFormatter(locale);
   const spentByType = useMemo(() => {
     const totals = new Map<PurchaseType, bigint>(PURCHASE_TYPES.map((type) => [type, 0n]));

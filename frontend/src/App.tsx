@@ -32,6 +32,9 @@ const TransactionsPage = lazy(() =>
 const PaymentsPage = lazy(() =>
   import('./pages/payments-page').then(({ PaymentsPage }) => ({ default: PaymentsPage })),
 );
+const YieldsPage = lazy(() =>
+  import('./pages/yields-page').then(({ YieldsPage }) => ({ default: YieldsPage })),
+);
 
 function PageLoading() {
   const { t } = useTranslation();
@@ -60,6 +63,8 @@ function renderPage(page: AppPage, onNavigate: (nextPage: AppPage) => void) {
       return <TransactionsPage onNavigate={onNavigate} />;
     case 'payments':
       return <PaymentsPage onNavigate={onNavigate} />;
+    case 'yields':
+      return <YieldsPage onNavigate={onNavigate} />;
     case 'invoices':
       return <InvoicesPage onNavigate={onNavigate} />;
     case 'limits':

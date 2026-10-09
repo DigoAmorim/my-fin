@@ -1,3 +1,4 @@
+import { withTransaction } from '../../../database/transaction';
 import { pool } from '../../../database/pool';
 import type { Account, AccountFields, AccountType, PluggyAccount } from './account-types';
 
@@ -124,9 +125,7 @@ export async function findForSynchronization(): Promise<OpenFinanceBankRow[]> {
 export async function upsertPluggyAccounts(
   batches: Array<{ bank: OpenFinanceBankRow; accounts: PluggyAccount[] }>,
 ): Promise<number> {
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
+  await withTransaction(async (client) => {
     for (const { bank, accounts } of batches) {
       for (const account of accounts) {
         await client.query(
@@ -150,13 +149,7 @@ export async function upsertPluggyAccounts(
         );
       }
     }
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 
   return batches.reduce((total, batch) => total + batch.accounts.length, 0);
 }

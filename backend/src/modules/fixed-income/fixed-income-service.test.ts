@@ -25,6 +25,21 @@ test('parses fixed income positions and sums decimal amounts safely', () => {
   assert.equal(sumFixedIncomeAmounts(positions), '350.75');
 });
 
+test('uses investment updatedAt instead of its original investment date', () => {
+  const positions = parseFixedIncomePositions({
+    results: [{
+      id: '1',
+      type: 'FIXED_INCOME',
+      subtype: 'CDB',
+      amount: '100.00',
+      date: '2026-10-05T10:00:00.000Z',
+      updatedAt: '2026-10-08T15:30:00.000Z',
+    }],
+  }, '2026-10-08T20:00:00.000Z');
+
+  assert.equal(positions[0].updatedAt, '2026-10-08T15:30:00.000Z');
+});
+
 test('rejects invalid fixed income positions and rounds to cents', () => {
   assert.throws(
     () => parseFixedIncomePositions({ results: [{ id: '1', type: 'FIXED_INCOME', subtype: '', amount: '10' }] }),

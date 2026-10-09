@@ -8,8 +8,10 @@ import { fixedIncomeRouter } from './modules/fixed-income/fixed-income-routes';
 import { openFinanceRouter } from './modules/open-finance/open-finance-routes';
 import { paymentRouter } from './modules/payment/payment-routes';
 import { purchaseLimitRouter } from './modules/purchase-limit/purchase-limit-routes';
+import { snapshotRouter } from './modules/snapshot/snapshot-routes';
 import { transactionRouter } from './modules/transaction/transaction-routes';
 import { variableIncomeRouter } from './modules/variable-income/variable-income-routes';
+import { yieldRouter } from './modules/yield/yield-routes';
 import { healthRouter } from './routes/health';
 
 export const app = express();
@@ -35,9 +37,11 @@ app.use('/api/credit-cards', creditCardRouter);
 app.use('/api/accounts', accountRouter);
 app.use('/api/investments', fixedIncomeRouter);
 app.use('/api/variable-investments', variableIncomeRouter);
+app.use('/api/yields', yieldRouter);
 app.use('/api/open-finance', openFinanceRouter);
 app.use('/api/payments', paymentRouter);
 app.use('/api/purchase-limits', purchaseLimitRouter);
+app.use('/api/snapshots', snapshotRouter);
 // Todas as rotas de compras/transacoes compartilham este prefixo.
 app.use('/api/transactions', transactionRouter);
 app.use(apiErrorMiddleware);

@@ -1,3 +1,4 @@
+import { withTransaction } from '../../../database/transaction';
 import { pool } from '../../../database/pool';
 import type { FixedIncomePosition, PluggyFixedIncomePosition } from './fixed-income-types';
 
@@ -42,9 +43,7 @@ export async function findAllFixedIncome(): Promise<FixedIncomePosition[]> {
 export async function upsertFixedIncome(
   batches: Array<{ bank: { id: number; bankName: string }; positions: PluggyFixedIncomePosition[] }>,
 ): Promise<number> {
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
+  await withTransaction(async (client) => {
     for (const { bank, positions } of batches) {
       for (const position of positions) {
         await client.query(
@@ -72,13 +71,7 @@ export async function upsertFixedIncome(
         [bank.id, positions.map((position) => position.id)],
       );
     }
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 
   return batches.reduce((total, batch) => total + batch.positions.length, 0);
 }

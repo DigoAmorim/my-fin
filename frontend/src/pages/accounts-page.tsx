@@ -1,5 +1,5 @@
 import { Pencil, Plus, Trash2, Wallet } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { AccountForm, type AccountFormValues } from '../components/accounts/account-form';
@@ -10,9 +10,11 @@ import { PageContainer } from '../components/layout/page-container';
 import { PageHeader } from '../components/layout/page-header';
 import { Button } from '../components/ui/button';
 import { SortableTableHead } from '../components/ui/sortable-table-head';
-import { sortRows, type SortDirection } from '../lib/table-sorting';
+import { sortRows, useTableSortState } from '../lib/table-sorting';
+import { resolveIntlLocale } from '../lib/locale';
 import { minorUnitsToNumber, sumMinorUnits } from '../lib/money';
 import { useCurrencyFormatter } from '../lib/privacy-mode';
+import { useAsyncResource } from '../lib/use-async-resource';
 import {
   Dialog,
   DialogContent,
@@ -44,10 +46,16 @@ type AccountSortColumn = 'bankName' | 'accountNumber' | 'accountType' | 'balance
 
 export function AccountsPage({ onNavigate }: AccountsPageProps) {
   const { t, i18n } = useTranslation();
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
-  const [reloadId, setReloadId] = useState(0);
+  const loadAccounts = useCallback(async (signal: AbortSignal) => (
+    (await listAccounts(signal)).filter((item) => item.accountType !== 'fixed_income')
+  ), []);
+  const {
+    data: accounts,
+    setData: setAccounts,
+    isLoading,
+    error: loadError,
+    reload: retryLoad,
+  } = useAsyncResource<Account[]>(loadAccounts, [], t('common.error'));
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deletingAccount, setDeletingAccount] = useState<Account | null>(null);
@@ -55,26 +63,7 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
   const [formError, setFormError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [sortBy, setSortBy] = useState<AccountSortColumn>('bankName');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void listAccounts(controller.signal)
-      .then((nextAccounts) => {
-        if (controller.signal.aborted) return;
-        setAccounts(nextAccounts.filter((item) => item.accountType !== 'fixed_income'));
-      })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-        setLoadError(error instanceof Error ? error.message : t('common.error'));
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false);
-      });
-
-    return () => controller.abort();
-  }, [reloadId, t]);
+  const { sortBy, sortDirection, toggleSort } = useTableSortState<AccountSortColumn>('bankName');
 
   function closeForm() {
     setDialogOpen(false);
@@ -100,12 +89,6 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
     });
     setFormError('');
     setDialogOpen(true);
-  }
-
-  function retryLoad() {
-    setIsLoading(true);
-    setLoadError('');
-    setReloadId((current) => current + 1);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -154,8 +137,7 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
     }
   }
 
-  const language = i18n.resolvedLanguage ?? i18n.language;
-  const locale = language.startsWith('pt') ? 'pt-BR' : 'en-US';
+  const locale = resolveIntlLocale(i18n.resolvedLanguage ?? i18n.language);
   const currencyFormatter = useCurrencyFormatter(locale);
   const dateFormatter = new Intl.DateTimeFormat(locale, {
     day: '2-digit',
@@ -186,15 +168,6 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
     sortDirection,
     locale,
   ), [accounts, sortBy, sortDirection, locale, t]);
-
-  function toggleSort(column: AccountSortColumn) {
-    if (sortBy === column) {
-      setSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortDirection('asc');
-    }
-  }
 
   return (
     <AppLayout currentPage="accounts" onNavigate={onNavigate}>

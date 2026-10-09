@@ -1,4 +1,4 @@
-import { BadgeDollarSign, CreditCard, Eye, EyeOff, Gauge, Globe, HandCoins, Languages, LayoutDashboard, Menu, Receipt, ReceiptText, TrendingUp, Wallet } from 'lucide-react';
+import { BadgeDollarSign, CreditCard, Eye, EyeOff, Gauge, Globe, HandCoins, Languages, LayoutDashboard, Menu, Percent, Receipt, ReceiptText, TrendingUp, Wallet } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -6,7 +6,7 @@ import { cn } from '../../lib/utils';
 import { usePrivacyMode } from '../../lib/privacy-mode';
 
 /** Destinos disponíveis na navegação principal da aplicação. */
-export type AppPage = 'dashboard' | 'accounts' | 'fixedIncome' | 'variableIncome' | 'creditCards' | 'limits' | 'openFinance' | 'transactions' | 'payments' | 'invoices';
+export type AppPage = 'dashboard' | 'accounts' | 'fixedIncome' | 'variableIncome' | 'yields' | 'creditCards' | 'limits' | 'openFinance' | 'transactions' | 'payments' | 'invoices';
 
 function navItemClass(isActive: boolean): string {
   return cn(
@@ -136,6 +136,15 @@ export function AppLayout({ children, currentPage, onNavigate }: AppLayoutProps)
             >
               <BadgeDollarSign size={17} />
               <span>{t('nav.fixedIncome')}</span>
+            </button>
+            <button
+              type="button"
+              aria-current={currentPage === 'yields' ? 'page' : undefined}
+              onClick={() => navigateTo('yields')}
+              className={navItemClass(currentPage === 'yields')}
+            >
+              <Percent size={17} />
+              <span>{t('nav.yields')}</span>
             </button>
             <button
               type="button"

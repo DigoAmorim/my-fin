@@ -1,10 +1,11 @@
 import { Pencil, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { SortableTableHead } from '../ui/sortable-table-head';
-import { sortRows, type SortDirection } from '../../lib/table-sorting';
+import { sortRows, useTableSortState } from '../../lib/table-sorting';
+import { resolveIntlLocale } from '../../lib/locale';
 import type { CreditCard } from '../../types/credit-card';
 
 type CreditCardTableProps = {
@@ -16,24 +17,14 @@ type CreditCardTableProps = {
 
 export function CreditCardTable({ cards, isLoading, onEdit, onDelete }: CreditCardTableProps) {
   const { t, i18n } = useTranslation();
-  const [sortBy, setSortBy] = useState<'name' | 'dueDay'>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
+  const { sortBy, sortDirection, toggleSort } = useTableSortState<'name' | 'dueDay'>('name');
+  const locale = resolveIntlLocale(i18n.resolvedLanguage ?? i18n.language);
   const sortedCards = useMemo(() => sortRows(
     cards,
     (card) => sortBy === 'name' ? card.name : card.dueDay,
     sortDirection,
     locale,
   ), [cards, sortBy, sortDirection, locale]);
-
-  function toggleSort(column: typeof sortBy) {
-    if (sortBy === column) {
-      setSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortDirection('asc');
-    }
-  }
 
   // A tabela apresenta carregamento, lista vazia ou cartões e delega edição/exclusão à página.
   if (isLoading) {

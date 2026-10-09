@@ -1,10 +1,11 @@
 import { enUS, ptBR } from 'date-fns/locale';
+import { resolveIntlLocale } from './locale';
 
 export function resolveDateLocales(language: string | undefined) {
-  const isEnglish = language?.toLowerCase().startsWith('en') ?? false;
+  const intlLocale = resolveIntlLocale(language);
 
   return {
-    dateFnsLocale: isEnglish ? enUS : ptBR,
-    intlLocale: isEnglish ? 'en-US' : 'pt-BR',
+    dateFnsLocale: intlLocale === 'en-US' ? enUS : ptBR,
+    intlLocale,
   };
 }

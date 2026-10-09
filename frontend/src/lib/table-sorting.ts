@@ -1,5 +1,27 @@
+import { useCallback, useState } from 'react';
+
 export type SortDirection = 'asc' | 'desc';
 export type SortValue = number | string | null | undefined;
+
+export function useTableSortState<Column extends string>(
+  initialColumn: Column,
+  initialDirection: SortDirection = 'asc',
+) {
+  const [sortBy, setSortBy] = useState<Column>(initialColumn);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(initialDirection);
+
+  const toggleSort = useCallback((column: Column) => {
+    if (sortBy === column) {
+      setSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
+      return;
+    }
+
+    setSortBy(column);
+    setSortDirection('asc');
+  }, [sortBy]);
+
+  return { sortBy, sortDirection, toggleSort };
+}
 
 export function sortRows<T>(
   rows: T[],

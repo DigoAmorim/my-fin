@@ -1,5 +1,5 @@
 import { Pencil, Plus, Trash2, Wallet } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { AccountForm, type AccountFormValues } from '../components/accounts/account-form';
@@ -24,6 +24,8 @@ import {
 } from '../lib/account-api';
 import { deleteInvestment, getInvestmentSummary } from '../lib/investment-api';
 import { useCurrencyFormatter } from '../lib/privacy-mode';
+import { resolveIntlLocale } from '../lib/locale';
+import { useAsyncResource } from '../lib/use-async-resource';
 import type { Account, ManualAccountInput } from '../types/account';
 import type { InvestmentSummary, Investment } from '../types/investment';
 
@@ -40,10 +42,13 @@ const EMPTY_MANUAL_POSITION: AccountFormValues = {
 
 export function FixedIncomePage({ onNavigate }: FixedIncomePageProps) {
   const { t, i18n } = useTranslation();
-  const [summary, setSummary] = useState<InvestmentSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
-  const [reloadId, setReloadId] = useState(0);
+  const loadSummary = useCallback((signal: AbortSignal) => getInvestmentSummary(signal), []);
+  const {
+    data: summary,
+    isLoading,
+    error: loadError,
+    reload: reloadInvestments,
+  } = useAsyncResource<InvestmentSummary | null>(loadSummary, null, t('common.error'));
   const [deletingInvestment, setDeletingInvestment] = useState<Investment | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -52,26 +57,7 @@ export function FixedIncomePage({ onNavigate }: FixedIncomePageProps) {
   const [formError, setFormError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    void getInvestmentSummary(controller.signal)
-      .then((nextSummary) => {
-        if (!controller.signal.aborted) setSummary(nextSummary);
-      })
-      .catch((error: unknown) => {
-        if (!controller.signal.aborted) {
-          setLoadError(error instanceof Error ? error.message : t('common.error'));
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false);
-      });
-
-    return () => controller.abort();
-  }, [reloadId, t]);
-
-  const language = i18n.resolvedLanguage ?? i18n.language;
-  const locale = language.startsWith('pt') ? 'pt-BR' : 'en-US';
+  const locale = resolveIntlLocale(i18n.resolvedLanguage ?? i18n.language);
   const currencyFormatter = useCurrencyFormatter(locale);
   const dateFormatter = new Intl.DateTimeFormat(locale, {
     day: '2-digit',
@@ -80,12 +66,6 @@ export function FixedIncomePage({ onNavigate }: FixedIncomePageProps) {
   });
   const timeFormatter = new Intl.DateTimeFormat(locale, { timeStyle: 'short' });
   const total = Number(summary?.total ?? 0);
-
-  function reloadInvestments() {
-    setIsLoading(true);
-    setLoadError('');
-    setReloadId((current) => current + 1);
-  }
 
   function closeForm() {
     setFormOpen(false);

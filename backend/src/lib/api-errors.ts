@@ -83,6 +83,15 @@ const ptBRMessages = {
   paymentAmountMaxValue: 'O valor do pagamento é muito alto.',
   paymentDateISO: 'A data do pagamento deve ser válida e estar no formato AAAA-MM-DD.',
   paymentAccountInvalid: 'Selecione uma conta corrente ou poupança válida.',
+  yieldNotFound: 'Rendimento não encontrado.',
+  yieldIdGenerated: 'O id do rendimento é gerado pelo sistema e não pode ser informado.',
+  yieldIdImmutable: 'O id do rendimento não pode ser alterado.',
+  yieldAccountInvalid: 'Selecione uma conta válida para acompanhar o rendimento.',
+  yieldAccountAlreadyExists: 'Esta conta já possui um rendimento cadastrado.',
+  yieldAutomaticInvalid: 'A opção de atualização automática deve ser booleana.',
+  yieldAmountInvalid: 'Informe um valor decimal válido para o rendimento.',
+  yieldAmountMaxDecimals: 'O rendimento deve ter no máximo duas casas decimais.',
+  yieldAmountMaxValue: 'O valor do rendimento é muito alto.',
 } as const;
 
 export type BackendLocale = 'pt-BR' | 'en';
@@ -171,6 +180,15 @@ const enMessages: Record<ApiMessageKey, string> = {
   paymentAmountMaxValue: 'Payment amount is too high.',
   paymentDateISO: 'Payment date must be valid and use the YYYY-MM-DD format.',
   paymentAccountInvalid: 'Select a valid checking or savings account.',
+  yieldNotFound: 'Yield not found.',
+  yieldIdGenerated: 'Yield id is generated and cannot be set.',
+  yieldIdImmutable: 'Yield id cannot be changed.',
+  yieldAccountInvalid: 'Select a valid account for yield tracking.',
+  yieldAccountAlreadyExists: 'This account already has a yield record.',
+  yieldAutomaticInvalid: 'Automatic update must be a boolean value.',
+  yieldAmountInvalid: 'Enter a valid decimal yield amount.',
+  yieldAmountMaxDecimals: 'Yield amount must have at most two decimal places.',
+  yieldAmountMaxValue: 'Yield amount is too high.',
 };
 
 const translations: Record<BackendLocale, Record<ApiMessageKey, string>> = {

@@ -1,5 +1,5 @@
-import { ChartNoAxesCombined, Trash2, TrendingUp, Wallet } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ChartNoAxesCombined, Trash2, Wallet } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppLayout, type AppPage } from '../components/layout/app-layout';
 import { ContentSection } from '../components/layout/content-section';
@@ -18,7 +18,9 @@ import {
   deleteVariableIncomeInvestment,
   getVariableIncomeSummary,
 } from '../lib/variable-income-api';
+import { resolveIntlLocale } from '../lib/locale';
 import { useCurrencyFormatter } from '../lib/privacy-mode';
+import { useAsyncResource } from '../lib/use-async-resource';
 import type { VariableIncomeInvestment, VariableIncomeSummary } from '../types/variable-income';
 
 type VariableIncomePageProps = {
@@ -27,41 +29,20 @@ type VariableIncomePageProps = {
 
 export function VariableIncomePage({ onNavigate }: VariableIncomePageProps) {
   const { t, i18n } = useTranslation();
-  const [summary, setSummary] = useState<VariableIncomeSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
-  const [reloadId, setReloadId] = useState(0);
+  const loadSummary = useCallback((signal: AbortSignal) => getVariableIncomeSummary(signal), []);
+  const {
+    data: summary,
+    isLoading,
+    error: loadError,
+    setError: setLoadError,
+    reload: reloadInvestments,
+  } = useAsyncResource<VariableIncomeSummary | null>(loadSummary, null, t('common.error'));
   const [deletingInvestment, setDeletingInvestment] = useState<VariableIncomeInvestment | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    void getVariableIncomeSummary(controller.signal)
-      .then((nextSummary) => {
-        if (!controller.signal.aborted) setSummary(nextSummary);
-      })
-      .catch((error: unknown) => {
-        if (!controller.signal.aborted) {
-          setLoadError(error instanceof Error ? error.message : t('common.error'));
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false);
-      });
-
-    return () => controller.abort();
-  }, [reloadId, t]);
-
-  const language = i18n.resolvedLanguage ?? i18n.language;
-  const locale = language.startsWith('pt') ? 'pt-BR' : 'en-US';
+  const locale = resolveIntlLocale(i18n.resolvedLanguage ?? i18n.language);
   const currencyFormatter = useCurrencyFormatter(locale);
   const quantityFormatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 10 });
-
-  function reloadInvestments() {
-    setIsLoading(true);
-    setLoadError('');
-    setReloadId((current) => current + 1);
-  }
 
   async function confirmDeleteInvestment() {
     if (!deletingInvestment) return;

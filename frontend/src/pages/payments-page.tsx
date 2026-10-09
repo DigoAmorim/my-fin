@@ -1,5 +1,5 @@
 import { HandCoins, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { AppLayout, type AppPage } from '../components/layout/app-layout';
@@ -22,8 +22,10 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { createPayment, deletePayment, listPayments, updatePayment } from '../lib/payment-api';
 import { listAccounts } from '../lib/account-api';
-import { sortRows, type SortDirection } from '../lib/table-sorting';
+import { sortRows, useTableSortState } from '../lib/table-sorting';
+import { resolveIntlLocale } from '../lib/locale';
 import { useCurrencyFormatter, usePrivacyMode } from '../lib/privacy-mode';
+import { useAsyncResource } from '../lib/use-async-resource';
 import { SortableTableHead } from '../components/ui/sortable-table-head';
 import type { Account } from '../types/account';
 import type { Payment, PaymentInput } from '../types/payment';
@@ -49,13 +51,30 @@ const EMPTY_FORM: PaymentFormValues = {
 export function PaymentsPage({ onNavigate }: PaymentsPageProps) {
   const { t, i18n } = useTranslation();
   const { privateMode } = usePrivacyMode();
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [sortBy, setSortBy] = useState<'name' | 'amount' | 'date' | 'account'>('date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
-  const [reloadKey, setReloadKey] = useState(0);
+  const loadPayments = useCallback(async (signal: AbortSignal) => {
+    const [nextAccounts, payments] = await Promise.all([
+      listAccounts(signal),
+      listPayments(signal),
+    ]);
+    return {
+      accounts: nextAccounts.filter((account) => (
+        account.accountType === 'checking' || account.accountType === 'savings'
+      )),
+      payments,
+    };
+  }, []);
+  const {
+    data: paymentData,
+    isLoading,
+    error: loadError,
+    reload,
+  } = useAsyncResource<{ accounts: Account[]; payments: Payment[] }>(
+    loadPayments,
+    { accounts: [], payments: [] },
+    t('common.error'),
+  );
+  const { accounts, payments } = paymentData;
+  const { sortBy, sortDirection, toggleSort } = useTableSortState<'name' | 'amount' | 'date' | 'account'>('date');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [form, setForm] = useState<PaymentFormValues>(EMPTY_FORM);
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
@@ -64,30 +83,7 @@ export function PaymentsPage({ onNavigate }: PaymentsPageProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  useEffect(() => {
-    const controller = new AbortController();
-    void Promise.all([
-      listAccounts(controller.signal),
-      listPayments(controller.signal),
-    ])
-      .then(([nextAccounts, nextPayments]) => {
-        if (controller.signal.aborted) return;
-        setAccounts(nextAccounts.filter((account) => (
-          account.accountType === 'checking' || account.accountType === 'savings'
-        )));
-        setPayments(nextPayments);
-        setIsLoading(false);
-        setLoadError('');
-      })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-        setLoadError(error instanceof Error ? error.message : t('common.error'));
-        setIsLoading(false);
-      });
-    return () => controller.abort();
-  }, [reloadKey, t]);
-
-  const locale = (i18n.resolvedLanguage ?? i18n.language).startsWith('pt') ? 'pt-BR' : 'en-US';
+  const locale = resolveIntlLocale(i18n.resolvedLanguage ?? i18n.language);
   const currencyFormatter = useCurrencyFormatter(locale);
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat(locale), [locale]);
   const sortedPayments = useMemo(() => sortRows(
@@ -107,21 +103,6 @@ export function PaymentsPage({ onNavigate }: PaymentsPageProps) {
     sortDirection,
     locale,
   ), [payments, sortBy, sortDirection, locale]);
-
-  function toggleSort(column: typeof sortBy) {
-    if (sortBy === column) {
-      setSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortDirection('asc');
-    }
-  }
-
-  function reload() {
-    setIsLoading(true);
-    setLoadError('');
-    setReloadKey((key) => key + 1);
-  }
 
   function closeForm() {
     setIsFormOpen(false);

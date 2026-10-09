@@ -24,7 +24,7 @@ import { resolveDateLocales } from '../lib/date-locales';
 import { purchaseTypeLabelKeys, transactionTypeLabelKeys } from '../lib/transaction-labels';
 import { useCurrencyFormatter, type CurrencyFormatter } from '../lib/privacy-mode';
 import { minorUnitsToNumber, toMinorUnits } from '../lib/money';
-import { sortRows, type SortDirection } from '../lib/table-sorting';
+import { sortRows, type SortDirection, useTableSortState } from '../lib/table-sorting';
 import type { CreditCard } from '../types/credit-card';
 import type { PurchaseType, TransactionType } from '../types/transaction';
 import type { PaidTransaction, PaymentHistory } from '../lib/transaction-api';
@@ -59,8 +59,11 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
   const [purchaseFilter, setPurchaseFilter] = useState<PurchaseType | ''>('');
   const [debtorFilter, setDebtorFilter] = useState('');
   const [cardSortDirection, setCardSortDirection] = useState<SortDirection>('asc');
-  const [invoiceSortBy, setInvoiceSortBy] = useState<InvoiceSortColumn>('date');
-  const [invoiceSortDirection, setInvoiceSortDirection] = useState<SortDirection>('desc');
+  const {
+    sortBy: invoiceSortBy,
+    sortDirection: invoiceSortDirection,
+    toggleSort: toggleInvoiceSort,
+  } = useTableSortState<InvoiceSortColumn>('date', 'desc');
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [selectedPrintDebtors, setSelectedPrintDebtors] = useState<string[]>([]);
   const loadedHistoryRef = useRef<{ cardId: number; month: string } | null>(null);
@@ -205,15 +208,6 @@ export function InvoicesPage({ onNavigate }: InvoicesPageProps) {
   const hasFilters = !!search || !!typeFilter || !!purchaseFilter || !!debtorFilter;
 
   const amountFormatter = useCurrencyFormatter(intlLocale);
-
-  function toggleInvoiceSort(column: InvoiceSortColumn) {
-    if (invoiceSortBy === column) {
-      setInvoiceSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
-    } else {
-      setInvoiceSortBy(column);
-      setInvoiceSortDirection('asc');
-    }
-  }
 
   function toggleCardSort() {
     setCardSortDirection((current) => current === 'asc' ? 'desc' : 'asc');
