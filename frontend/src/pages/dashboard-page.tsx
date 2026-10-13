@@ -254,21 +254,20 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     const lowerBound = minimum - padding;
     const upperBound = maximum + padding;
     const chartTop = 24;
-    const chartBottom = 184;
-    const chartLeft = 145;
-    const chartRight = 972;
-    const axisTicks = Array.from({ length: 5 }, (_, index) => {
-      const ratio = index / 4;
+    const chartBottom = 210;
+    const chartLeft = 0;
+    const chartRight = 1000;
+    const axisTicks = Array.from({ length: 4 }, (_, index) => {
+      const ratio = index / 3;
       return {
         y: chartBottom - ratio * (chartBottom - chartTop),
-        value: lowerBound + ratio * (upperBound - lowerBound),
       };
     });
     const points = snapshotEvolution.map((point, index) => {
       const value = numericAmounts[index];
       const x = snapshotEvolution.length < 2
         ? (chartLeft + chartRight) / 2
-        : chartLeft + (index * (chartRight - chartLeft)) / (snapshotEvolution.length - 1);
+        : chartLeft + ((index + 0.5) * (chartRight - chartLeft)) / snapshotEvolution.length;
       const y = chartBottom - ((value - lowerBound) / (upperBound - lowerBound)) * (chartBottom - chartTop);
       return { ...point, value, x, y };
     });
@@ -600,41 +599,30 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             {portfolioEvolution.points.length > 0 ? (
               <div className="px-3 pb-4 sm:px-5">
                 <svg
-                  className="h-48 w-full overflow-visible"
-                  viewBox="0 0 1000 200"
-                  preserveAspectRatio="none"
+                  className="block h-auto w-full"
+                  viewBox="0 0 1000 240"
+                  preserveAspectRatio="xMidYMid meet"
                   role="img"
                   aria-label={t('dashboard.portfolioEvolutionChartLabel')}
                 >
                   {portfolioEvolution.axisTicks.map((tick) => (
-                    <g key={tick.y}>
-                      <line
-                        x1="145"
-                        x2="972"
-                        y1={tick.y}
-                        y2={tick.y}
-                        stroke="currentColor"
-                        strokeDasharray="4 7"
-                        className="text-border"
-                      />
-                      <text
-                        x="135"
-                        y={tick.y}
-                        textAnchor="end"
-                        dominantBaseline="middle"
-                        fontSize="12"
-                        className="fill-muted-foreground"
-                      >
-                        {formatCurrency(tick.value)}
-                      </text>
-                    </g>
+                    <line
+                      key={tick.y}
+                      x1="24"
+                      x2="976"
+                      y1={tick.y}
+                      y2={tick.y}
+                      stroke="currentColor"
+                      strokeDasharray="3 7"
+                      className="text-border/80"
+                    />
                   ))}
                   {portfolioEvolution.points.length > 1 ? (
                     <polyline
                       points={portfolioEvolution.polyline}
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="4"
+                      strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       className="text-primary"
@@ -657,34 +645,32 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                       </title>
                     </circle>
                   ))}
-                  {portfolioEvolution.points.map((point, index) => (
-                    <text
-                      key={`${point.month}-value`}
-                      x={point.x}
-                      y={Math.max(point.y - 12, 12)}
-                      textAnchor={index === 0 ? 'start' : index === portfolioEvolution.points.length - 1 ? 'end' : 'middle'}
-                      fontSize="11"
-                      fontWeight="600"
-                      className="fill-foreground"
-                    >
-                      {formatCurrency(point.value)}
-                    </text>
-                  ))}
                 </svg>
                 <div
-                  className="grid gap-1 px-1 text-center text-[10px] text-muted-foreground sm:text-xs"
+                  className="grid gap-2 px-1 text-center sm:gap-3"
                   style={{ gridTemplateColumns: `repeat(${portfolioEvolution.points.length}, minmax(0, 1fr))` }}
                 >
-                  {portfolioEvolution.points.map((point) => {
+                  {portfolioEvolution.points.map((point, index) => {
                     const month = new Date(`${point.month}-01T12:00:00`);
                     return (
-                      <span
+                      <div
                         key={point.month}
-                        className="truncate"
-                        title={portfolioMonthFormatter.format(month)}
+                        className={`min-w-0 rounded-lg border px-2 py-2 ${
+                          index === portfolioEvolution.points.length - 1
+                            ? 'border-emerald-200 bg-emerald-50/60'
+                            : 'border-border bg-muted/20'
+                        }`}
                       >
-                        {portfolioMonthFormatter.format(month)}
-                      </span>
+                        <span className="block truncate text-xs font-medium text-muted-foreground sm:text-sm">
+                          {portfolioMonthFormatter.format(month)}
+                        </span>
+                        <span
+                          className="mt-0.5 block break-words text-xs font-semibold leading-5 tabular-nums text-foreground sm:text-sm"
+                          title={formatCurrency(point.value)}
+                        >
+                          {formatCurrency(point.value)}
+                        </span>
+                      </div>
                     );
                   })}
                 </div>

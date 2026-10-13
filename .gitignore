@@ -7,3 +7,6 @@ referencia/
 !.env.example
 *.log
 .DS_Store
+apostila-react-node-my-fin.md
+.gitignore
+apostila-react-node-my-fin.pdf

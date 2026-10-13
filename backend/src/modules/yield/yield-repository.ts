@@ -125,7 +125,7 @@ export async function update(
       ${ACCOUNT_PREVIOUS_SNAPSHOT}
       WHERE yield_record.id = $1
         AND account.id = yield_record.account_id
-      RETURNING *
+      RETURNING yield_record.*
     )
     SELECT ${YIELD_COLUMNS.replaceAll('yield_record.', 'updated.')}
     FROM updated

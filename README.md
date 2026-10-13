@@ -22,6 +22,11 @@ Estrutura inicial de uma aplicação financeira com React, TypeScript, Node.js e
 
 Use `npm run db:down` para parar o banco. Os dados locais ficam em um volume Docker chamado `postgres_data`.
 
+## Material de estudo
+
+- [Apostila em PDF: React, TypeScript e Node.js com o My Fin](./apostila-react-node-my-fin.pdf)
+- [Fonte editável da apostila](./apostila-react-node-my-fin.md)
+
 ## Organização
 
 - `frontend`: aplicação React + TypeScript, criada com Vite.
